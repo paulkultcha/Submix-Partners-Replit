@@ -1,0 +1,126 @@
+# Replit.md - Affiliate Program Management System
+
+## Overview
+
+This is a full-stack web application for managing an affiliate program. It's built with a modern tech stack including React, TypeScript, Express, and PostgreSQL with Drizzle ORM. The application allows administrators to manage partners, track commissions, create coupons, handle payouts, and generate reports.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite for fast development and optimized builds
+- **Routing**: Wouter for lightweight client-side routing
+- **State Management**: TanStack Query (React Query) for server state management
+- **UI Components**: Radix UI primitives with shadcn/ui design system
+- **Styling**: Tailwind CSS with CSS variables for theming
+- **Form Handling**: React Hook Form with Zod validation
+
+### Backend Architecture
+- **Framework**: Express.js with TypeScript
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: Passport.js with local strategy and session-based auth
+- **Session Storage**: PostgreSQL session store
+- **Validation**: Zod schemas shared between frontend and backend
+- **Development**: tsx for TypeScript execution
+
+### Database Design
+- **ORM**: Drizzle with PostgreSQL dialect
+- **Schema Location**: `shared/schema.ts` for type safety across frontend/backend
+- **Tables**: users, partners, commissions, coupons, payouts, clicks
+- **Relationships**: Proper foreign key constraints and relations defined
+
+## Key Components
+
+### Database Schema
+- **Users**: Admin authentication with username/email/password
+- **Partners**: Affiliate partner management with commission rates and tracking
+- **Commissions**: Transaction tracking with status management
+- **Coupons**: Discount codes linked to partners
+- **Payouts**: Payment processing and history
+- **Clicks**: Click tracking for referral attribution
+
+### Authentication System
+- Session-based authentication using Passport.js
+- Password hashing with scrypt
+- Protected routes with authentication middleware
+- Role-based access (admin role implemented)
+
+### API Structure
+- RESTful endpoints for all major entities
+- CRUD operations for partners, commissions, coupons
+- Analytics endpoints for dashboard metrics
+- Proper error handling and validation
+
+### UI Components
+- Responsive design with mobile-first approach
+- Reusable component library based on Radix UI
+- Dark mode support built into the design system
+- Form validation with real-time feedback
+
+## Data Flow
+
+### Authentication Flow
+1. User submits credentials via login form
+2. Backend validates against database using Passport.js
+3. Session created and stored in PostgreSQL
+4. Frontend receives user data and updates auth state
+5. Protected routes check authentication status
+
+### Partner Management Flow
+1. Admin creates partner through form dialog
+2. System generates unique referral code
+3. Partner data stored with commission settings
+4. Real-time updates to partner table via React Query
+5. Analytics automatically updated
+
+### Commission Tracking Flow
+1. External system reports conversion via API
+2. Commission calculated based on partner's rate
+3. Status tracking (pending → approved → paid)
+4. Partner statistics updated automatically
+5. Payout system processes approved commissions
+
+## External Dependencies
+
+### Core Dependencies
+- **Database**: Neon serverless PostgreSQL
+- **UI Framework**: Radix UI components
+- **Validation**: Zod for schema validation
+- **Query Management**: TanStack Query
+- **Authentication**: Passport.js with local strategy
+
+### Development Dependencies
+- **Build**: Vite with React plugin
+- **TypeScript**: Full type safety across stack
+- **Database Management**: Drizzle Kit for migrations
+- **Development Server**: Express with Vite middleware
+
+### Third-Party Integrations
+- **Email**: SendGrid for email notifications
+- **Payments**: Stripe for payment processing
+- **Session Storage**: PostgreSQL-based session store
+
+## Deployment Strategy
+
+### Build Process
+1. Frontend builds to `dist/public` via Vite
+2. Backend bundles to `dist/index.js` via esbuild
+3. Database migrations applied via Drizzle Kit
+4. Static files served by Express in production
+
+### Environment Configuration
+- **Development**: Vite dev server with HMR
+- **Production**: Express serves static files and API
+- **Database**: PostgreSQL connection via environment variables
+- **Session**: Secure session configuration with trust proxy
+
+### Key Environment Variables
+- `DATABASE_URL`: PostgreSQL connection string
+- `SESSION_SECRET`: Session encryption key
+- `NODE_ENV`: Environment mode (development/production)
+
+The application is designed for deployment on platforms like Replit, with proper configuration for both development and production environments. The architecture supports horizontal scaling through stateless API design and external session storage.
