@@ -130,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
-      console.log("Coupon request body:", req.body);
+
       const couponData = insertCouponSchema.parse(req.body);
       const coupon = await storage.createCoupon(couponData);
       res.status(201).json(coupon);

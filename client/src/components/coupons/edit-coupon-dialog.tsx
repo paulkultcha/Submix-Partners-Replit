@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { insertCouponSchema, Partner } from "@shared/schema";
+import { insertCouponSchema, Partner, Coupon } from "@shared/schema";
 import { z } from "zod";
 
-interface CreateCouponDialogProps {
+interface EditCouponDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  coupon: Coupon | null;
 }
 
 const formSchema = insertCouponSchema.extend({
@@ -22,7 +23,7 @@ const formSchema = insertCouponSchema.extend({
   usageLimit: z.string().optional(),
 });
 
-export function CreateCouponDialog({ open, onOpenChange }: CreateCouponDialogProps) {
+export function EditCouponDialog({ open, onOpenChange, coupon }: EditCouponDialogProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     code: "",
@@ -38,13 +39,28 @@ export function CreateCouponDialog({ open, onOpenChange }: CreateCouponDialogPro
     queryKey: ["/api/partners"],
   });
 
-  const createCouponMutation = useMutation({
+  // Update form data when coupon changes
+  useEffect(() => {
+    if (coupon) {
+      setFormData({
+        code: coupon.code,
+        partnerId: coupon.partnerId.toString(),
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue.toString(),
+        usageLimit: coupon.usageLimit ? coupon.usageLimit.toString() : "",
+        status: coupon.status,
+      });
+    }
+  }, [coupon]);
+
+  const editCouponMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", "/api/coupons", data);
+      if (!coupon) throw new Error("No coupon to edit");
+      const res = await apiRequest("PUT", `/api/coupons/${coupon.id}`, data);
       if (!res.ok) {
         const errorData = await res.json();
         console.error("API error:", errorData);
-        throw new Error(errorData.error || "Failed to create coupon");
+        throw new Error(errorData.error || "Failed to update coupon");
       }
       return res.json();
     },
@@ -52,24 +68,16 @@ export function CreateCouponDialog({ open, onOpenChange }: CreateCouponDialogPro
       queryClient.invalidateQueries({ queryKey: ["/api/coupons"] });
       toast({
         title: "Success",
-        description: "Coupon created successfully",
+        description: "Coupon updated successfully",
       });
       onOpenChange(false);
-      setFormData({
-        code: "",
-        partnerId: "",
-        discountType: "percentage",
-        discountValue: "",
-        usageLimit: "",
-        status: "active",
-      });
       setErrors({});
     },
     onError: (error: any) => {
       console.error("Mutation error:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create coupon",
+        description: error.message || "Failed to update coupon",
         variant: "destructive",
       });
     },
@@ -99,41 +107,26 @@ export function CreateCouponDialog({ open, onOpenChange }: CreateCouponDialogPro
     };
 
 
-
-    createCouponMutation.mutate(couponData);
-  };
-
-  const generateCouponCode = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
-    for (let i = 0; i < 8; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setFormData({ ...formData, code: result });
+    editCouponMutation.mutate(couponData);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Coupon</DialogTitle>
+          <DialogTitle>Edit Coupon</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="code">Coupon Code</Label>
-            <div className="flex space-x-2">
-              <Input
-                id="code"
-                value={formData.code}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                className={errors.code ? "border-destructive" : ""}
-                placeholder="Enter coupon code"
-              />
-              <Button type="button" variant="outline" onClick={generateCouponCode}>
-                Generate
-              </Button>
-            </div>
+            <Input
+              id="code"
+              value={formData.code}
+              onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+              className={errors.code ? "border-destructive" : ""}
+              placeholder="Enter coupon code"
+            />
             {errors.code && (
               <p className="text-sm text-destructive">{errors.code}</p>
             )}
@@ -203,6 +196,20 @@ export function CreateCouponDialog({ open, onOpenChange }: CreateCouponDialogPro
             />
           </div>
           
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="expired">Expired</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
           <div className="flex items-center justify-end space-x-3 pt-4">
             <Button 
               type="button" 
@@ -213,15 +220,15 @@ export function CreateCouponDialog({ open, onOpenChange }: CreateCouponDialogPro
             </Button>
             <Button 
               type="submit"
-              disabled={createCouponMutation.isPending}
+              disabled={editCouponMutation.isPending}
             >
-              {createCouponMutation.isPending ? (
+              {editCouponMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Updating...
                 </>
               ) : (
-                "Create Coupon"
+                "Update Coupon"
               )}
             </Button>
           </div>

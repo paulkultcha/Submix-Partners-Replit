@@ -7,15 +7,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { Coupon } from "@shared/schema";
 import { CreateCouponDialog } from "./create-coupon-dialog";
+import { EditCouponDialog } from "./edit-coupon-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export function CouponTable() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const { toast } = useToast();
   
   const { data: coupons, isLoading } = useQuery<Coupon[]>({
     queryKey: ["/api/coupons"],
+  });
+
+  const { data: partners } = useQuery<any[]>({
+    queryKey: ["/api/partners"],
   });
 
   const deleteCouponMutation = useMutation({
@@ -50,6 +57,16 @@ export function CouponTable() {
     if (window.confirm("Are you sure you want to delete this coupon?")) {
       deleteCouponMutation.mutate(id);
     }
+  };
+
+  const handleEditCoupon = (coupon: Coupon) => {
+    setEditingCoupon(coupon);
+    setShowEditDialog(true);
+  };
+
+  const getPartnerName = (partnerId: number) => {
+    const partner = partners?.find(p => p.id === partnerId);
+    return partner ? partner.name : `Partner #${partnerId}`;
   };
 
   if (isLoading) {
@@ -120,7 +137,7 @@ export function CouponTable() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                        Partner #{coupon.partnerId}
+                        {getPartnerName(coupon.partnerId)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
                         {coupon.discountType === "percentage" 
@@ -144,7 +161,11 @@ export function CouponTable() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditCoupon(coupon)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button 
@@ -169,6 +190,12 @@ export function CouponTable() {
       <CreateCouponDialog 
         open={showCreateDialog} 
         onOpenChange={setShowCreateDialog}
+      />
+      
+      <EditCouponDialog 
+        open={showEditDialog} 
+        onOpenChange={setShowEditDialog}
+        coupon={editingCoupon}
       />
     </>
   );
