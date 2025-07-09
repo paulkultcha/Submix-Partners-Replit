@@ -17,7 +17,9 @@ interface AddPartnerDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const formSchema = insertPartnerSchema.extend({
+const formSchema = insertPartnerSchema.omit({
+  referralCode: true,
+}).extend({
   commissionRate: z.string().min(1, "Commission rate is required"),
 });
 
@@ -89,6 +91,8 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
       ...formData,
       commissionRate: parseFloat(formData.commissionRate),
     };
+
+    console.log("Creating partner with data:", partnerData);
 
     createPartnerMutation.mutate(partnerData);
   };

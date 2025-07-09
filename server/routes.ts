@@ -25,7 +25,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
-      const partnerData = insertPartnerSchema.parse(req.body);
+      // Use schema without referralCode since we generate it server-side
+      const partnerSchema = insertPartnerSchema.omit({ referralCode: true });
+      const partnerData = partnerSchema.parse(req.body);
       
       // Generate unique referral code
       const referralCode = randomBytes(8).toString('hex').toUpperCase();
@@ -40,6 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: error.errors });
       } else {
+        console.error("Partner creation error:", error);
         res.status(500).json({ error: "Failed to create partner" });
       }
     }
