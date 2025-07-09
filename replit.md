@@ -124,3 +124,19 @@ Preferred communication style: Simple, everyday language.
 - `NODE_ENV`: Environment mode (development/production)
 
 The application is designed for deployment on platforms like Replit, with proper configuration for both development and production environments. The architecture supports horizontal scaling through stateless API design and external session storage.
+
+## Recent Changes
+
+### December 2024
+- **Fixed coupon creation validation** - Resolved "Expected number, received string" error by updating form validation schema and data type conversion
+- **Implemented coupon edit functionality** - Added EditCouponDialog component with full CRUD operations and proper form validation
+- **Enhanced partner display** - Updated coupon table to show actual partner names instead of IDs
+- **Fixed toast notification positioning** - Improved notification system visibility and positioning for better user experience
+- **Implemented functional reports system** - Added CSV export functionality for all report types (Partner Performance, Commission Report, Coupon Usage, Payout History) with proper data formatting and error handling
+
+### Key Features Completed
+- Partner management with create, edit, and delete operations
+- Coupon management with full CRUD functionality
+- Working notification system with toast messages
+- Comprehensive reports with CSV export capabilities
+- Database integration with PostgreSQL and proper error handling
