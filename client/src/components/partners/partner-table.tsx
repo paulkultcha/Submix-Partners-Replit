@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Download, Edit, Trash2 } from "lucide-react";
 import { Partner } from "@shared/schema";
 import { AddPartnerDialog } from "./add-partner-dialog";
+import { EditPartnerDialog } from "./edit-partner-dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +17,8 @@ export function PartnerTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
   const { toast } = useToast();
   
   const { data: partners, isLoading } = useQuery<Partner[]>({
@@ -65,6 +68,11 @@ export function PartnerTable() {
     if (window.confirm("Are you sure you want to delete this partner?")) {
       deletePartnerMutation.mutate(id);
     }
+  };
+
+  const handleEditPartner = (partner: Partner) => {
+    setSelectedPartner(partner);
+    setShowEditDialog(true);
   };
 
   if (isLoading) {
@@ -196,7 +204,11 @@ export function PartnerTable() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditPartner(partner)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button 
@@ -221,6 +233,12 @@ export function PartnerTable() {
       <AddPartnerDialog 
         open={showAddDialog} 
         onOpenChange={setShowAddDialog}
+      />
+      
+      <EditPartnerDialog 
+        open={showEditDialog} 
+        onOpenChange={setShowEditDialog}
+        partner={selectedPartner}
       />
     </>
   );
