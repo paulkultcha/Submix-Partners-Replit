@@ -40,6 +40,11 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
   const createPartnerMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await apiRequest("POST", "/api/partners", data);
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("API error:", errorData);
+        throw new Error(errorData.error || "Failed to create partner");
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -63,6 +68,7 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
       setErrors({});
     },
     onError: (error: any) => {
+      console.error("Mutation error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to add partner",
@@ -89,7 +95,7 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
 
     const partnerData = {
       ...formData,
-      commissionRate: parseFloat(formData.commissionRate),
+      commissionRate: formData.commissionRate.toString(),
     };
 
     console.log("Creating partner with data:", partnerData);
