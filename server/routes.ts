@@ -27,7 +27,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Use schema without referralCode since we generate it server-side
       const partnerSchema = insertPartnerSchema.omit({ referralCode: true });
-      console.log("Request body:", req.body);
+
       const partnerData = partnerSchema.parse(req.body);
       
       // Generate unique referral code

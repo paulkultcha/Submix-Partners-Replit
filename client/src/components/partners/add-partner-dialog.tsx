@@ -98,7 +98,7 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
       commissionRate: formData.commissionRate.toString(),
     };
 
-    console.log("Creating partner with data:", partnerData);
+
 
     createPartnerMutation.mutate(partnerData);
   };
