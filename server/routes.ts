@@ -222,7 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Track the click
       await storage.createClick({
         partnerId: partner.id,
-        ipAddress: req.ip,
+        ipAddress: req.ip || "",
         userAgent: req.get("User-Agent") || "",
         referrer: req.get("Referer") || "",
       });

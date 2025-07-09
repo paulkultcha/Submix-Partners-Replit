@@ -80,11 +80,11 @@ export interface IStorage {
   getTopPartners(limit?: number): Promise<Array<Partner & { monthlyRevenue: number; monthlyCommissions: number; }>>;
   getRevenueByMonth(months: number): Promise<Array<{ month: string; revenue: number; }>>;
   
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 
