@@ -17,6 +17,7 @@ interface CreateCouponDialogProps {
 }
 
 const formSchema = insertCouponSchema.extend({
+  partnerId: z.string().min(1, "Partner is required"),
   discountValue: z.string().min(1, "Discount value is required"),
   usageLimit: z.string().optional(),
 });
@@ -40,6 +41,11 @@ export function CreateCouponDialog({ open, onOpenChange }: CreateCouponDialogPro
   const createCouponMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await apiRequest("POST", "/api/coupons", data);
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("API error:", errorData);
+        throw new Error(errorData.error || "Failed to create coupon");
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -60,6 +66,7 @@ export function CreateCouponDialog({ open, onOpenChange }: CreateCouponDialogPro
       setErrors({});
     },
     onError: (error: any) => {
+      console.error("Mutation error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to create coupon",
@@ -87,9 +94,11 @@ export function CreateCouponDialog({ open, onOpenChange }: CreateCouponDialogPro
     const couponData = {
       ...formData,
       partnerId: parseInt(formData.partnerId),
-      discountValue: parseFloat(formData.discountValue),
+      discountValue: formData.discountValue.toString(),
       usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : null,
     };
+
+    console.log("Creating coupon with data:", couponData);
 
     createCouponMutation.mutate(couponData);
   };

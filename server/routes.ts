@@ -130,13 +130,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
+      console.log("Coupon request body:", req.body);
       const couponData = insertCouponSchema.parse(req.body);
       const coupon = await storage.createCoupon(couponData);
       res.status(201).json(coupon);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Coupon validation error:", error.errors);
         res.status(400).json({ error: error.errors });
       } else {
+        console.error("Coupon creation error:", error);
         res.status(500).json({ error: "Failed to create coupon" });
       }
     }
