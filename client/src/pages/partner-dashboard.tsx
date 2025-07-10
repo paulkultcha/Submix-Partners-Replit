@@ -14,7 +14,7 @@ export default function PartnerDashboard() {
   const { partner } = usePartnerAuth();
   const { toast } = useToast();
 
-  const { data: partnerData } = useQuery<Partner>({
+  const { data: partnerData, isLoading: isPartnerLoading } = useQuery<Partner>({
     queryKey: ["/api/partner/me"],
     enabled: !!partner,
   });
@@ -24,9 +24,31 @@ export default function PartnerDashboard() {
     enabled: !!partner,
   });
 
-  const copyReferralCode = () => {
-    if (partnerData?.referralCode) {
-      navigator.clipboard.writeText(partnerData.referralCode);
+  const copyReferralCode = async () => {
+    if (!partnerData?.referralCode) {
+      toast({
+        title: "Error",
+        description: "Referral code not available",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      await navigator.clipboard.writeText(partnerData.referralCode);
+      toast({
+        title: "Success",
+        description: "Referral code copied to clipboard",
+      });
+    } catch (error) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = partnerData.referralCode;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
       toast({
         title: "Success",
         description: "Referral code copied to clipboard",
@@ -34,10 +56,33 @@ export default function PartnerDashboard() {
     }
   };
 
-  const copyReferralLink = () => {
-    if (partnerData?.referralCode) {
-      const referralLink = `${window.location.origin}/refer/${partnerData.referralCode}`;
-      navigator.clipboard.writeText(referralLink);
+  const copyReferralLink = async () => {
+    if (!partnerData?.referralCode) {
+      toast({
+        title: "Error",
+        description: "Referral code not available",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const referralLink = `${window.location.origin}/refer/${partnerData.referralCode}`;
+    
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      toast({
+        title: "Success",
+        description: "Referral link copied to clipboard",
+      });
+    } catch (error) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = referralLink;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
       toast({
         title: "Success",
         description: "Referral link copied to clipboard",
@@ -134,11 +179,21 @@ export default function PartnerDashboard() {
                   </Badge>
                 </div>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={copyReferralCode}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={copyReferralCode}
+                    disabled={isPartnerLoading || !partnerData?.referralCode}
+                  >
                     <Copy className="mr-2 h-4 w-4" />
                     Copy Code
                   </Button>
-                  <Button variant="outline" size="sm" onClick={copyReferralLink}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={copyReferralLink}
+                    disabled={isPartnerLoading || !partnerData?.referralCode}
+                  >
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Copy Link
                   </Button>
