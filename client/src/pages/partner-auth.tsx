@@ -107,16 +107,26 @@ export default function PartnerAuth() {
   const onForgotPassword = async (data: z.infer<typeof forgotPasswordSchema>) => {
     try {
       setIsSubmitting(true);
-      await apiRequest("/api/partner/forgot-password", {
+      const response = await fetch("/api/partner/forgot-password", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(data),
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
       toast({
         title: "Reset link sent",
-        description: "If that email exists, we've sent a password reset link.",
+        description: result.message || "If that email exists, we've sent a password reset link.",
       });
       setShowForgotPassword(false);
     } catch (error) {
+      console.error("Forgot password error:", error);
       toast({
         title: "Error",
         description: "Failed to send reset link. Please try again.",
@@ -130,22 +140,32 @@ export default function PartnerAuth() {
   const onResetPassword = async (data: z.infer<typeof resetPasswordSchema>) => {
     try {
       setIsSubmitting(true);
-      await apiRequest("/api/partner/reset-password", {
+      const response = await fetch("/api/partner/reset-password", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           token: resetToken,
           newPassword: data.newPassword,
         }),
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
       toast({
         title: "Password reset",
-        description: "Your password has been reset successfully. You can now sign in.",
+        description: result.message || "Your password has been reset successfully. You can now sign in.",
       });
       setShowResetPassword(false);
       setResetToken(null);
       // Clear URL params
       window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error) {
+      console.error("Reset password error:", error);
       toast({
         title: "Error",
         description: "Failed to reset password. The link may have expired.",
