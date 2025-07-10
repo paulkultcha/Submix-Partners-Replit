@@ -468,6 +468,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/partner/payouts", async (req, res) => {
+    try {
+      // Return mock payout data
+      const mockPayouts = [
+        {
+          id: 1,
+          partnerId: 1,
+          amount: "125.50",
+          method: "Bank Transfer",
+          status: "processed",
+          requestedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          processedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        {
+          id: 2,
+          partnerId: 1,
+          amount: "89.25",
+          method: "PayPal",
+          status: "pending",
+          requestedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          processedAt: null,
+        },
+        {
+          id: 3,
+          partnerId: 1,
+          amount: "75.00",
+          method: "Bank Transfer",
+          status: "processed",
+          requestedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+          processedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+      ];
+      
+      res.json(mockPayouts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch payouts" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

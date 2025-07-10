@@ -21,6 +21,7 @@ import PartnerAuth from "@/pages/partner-auth";
 import PartnerDashboard from "@/pages/partner-dashboard";
 import PartnerPerformance from "@/pages/partner-performance";
 import PartnerCommissions from "@/pages/partner-commissions";
+import PartnerPayouts from "@/pages/partner-payouts";
 
 function Router() {
   return (
@@ -41,6 +42,7 @@ function Router() {
       <PartnerProtectedRoute path="/partner/dashboard" component={PartnerDashboard} />
       <PartnerProtectedRoute path="/partner/performance" component={PartnerPerformance} />
       <PartnerProtectedRoute path="/partner/commissions" component={PartnerCommissions} />
+      <PartnerProtectedRoute path="/partner/payouts" component={PartnerPayouts} />
       
       <Route component={NotFound} />
     </Switch>
