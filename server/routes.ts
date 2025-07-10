@@ -314,6 +314,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Partner already exists" });
       }
       
+      // Hash password
+      const hashedPassword = await hashPassword(password);
+      
       // Generate unique referral code
       const referralCode = randomBytes(8).toString('hex').toUpperCase();
       
@@ -321,7 +324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partner = await storage.createPartner({
         name,
         email,
-        password,
+        password: hashedPassword,
         referralCode,
         commissionRate: "5", // Default 5% commission
         commissionType: "percentage",
@@ -333,12 +336,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Set up partner session
-      req.login(partner, { session: false }, (err) => {
-        if (err) {
-          return res.status(500).json({ error: "Failed to create session" });
-        }
-        res.json(partner);
-      });
+      req.session.partnerId = partner.id;
+      
+      // Remove password from response
+      const { password: _, ...partnerWithoutPassword } = partner;
+      res.json(partnerWithoutPassword);
     } catch (error) {
       console.error("Partner registration error:", error);
       res.status(500).json({ error: "Failed to register partner" });
@@ -354,18 +356,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
-      // For now, simple password check (in production, use bcrypt)
-      if (partner.password !== password) {
+      // Check password with hash comparison
+      const isPasswordValid = await comparePasswords(password, partner.password);
+      if (!isPasswordValid) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
       // Set up partner session
-      req.login(partner, { session: false }, (err) => {
-        if (err) {
-          return res.status(500).json({ error: "Failed to create session" });
-        }
-        res.json(partner);
-      });
+      req.session.partnerId = partner.id;
+      
+      // Remove password from response
+      const { password: _, ...partnerWithoutPassword } = partner;
+      res.json(partnerWithoutPassword);
     } catch (error) {
       console.error("Partner login error:", error);
       res.status(500).json({ error: "Failed to login" });
@@ -373,32 +375,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/partner/logout", async (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ error: "Failed to logout" });
+    req.session.partnerId = null;
+    res.json({ success: true });
+  });
+
+  // Password reset routes
+  app.post("/api/partner/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      const partner = await storage.getPartnerByEmail(email);
+      if (!partner) {
+        // For security, don't reveal if email exists or not
+        return res.json({ success: true, message: "If that email exists, we've sent a reset link." });
       }
-      res.json({ success: true });
-    });
+      
+      // Generate reset token
+      const resetToken = randomBytes(32).toString('hex');
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+      
+      // Store reset token (in production, you'd update the partner record)
+      // For now, we'll use a simple in-memory store
+      if (!global.passwordResetTokens) {
+        global.passwordResetTokens = new Map();
+      }
+      global.passwordResetTokens.set(resetToken, {
+        email: partner.email,
+        expiresAt: resetTokenExpiry,
+      });
+      
+      // In production, you'd send an email with the reset link
+      // For demo purposes, we'll just log it
+      console.log(`Password reset link for ${email}: /partner/auth?reset=${resetToken}`);
+      
+      res.json({ success: true, message: "If that email exists, we've sent a reset link." });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ error: "Failed to process password reset request" });
+    }
+  });
+
+  app.post("/api/partner/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!global.passwordResetTokens || !global.passwordResetTokens.has(token)) {
+        return res.status(400).json({ error: "Invalid or expired reset token" });
+      }
+      
+      const tokenData = global.passwordResetTokens.get(token);
+      
+      // Check if token is expired
+      if (new Date() > tokenData.expiresAt) {
+        global.passwordResetTokens.delete(token);
+        return res.status(400).json({ error: "Reset token has expired" });
+      }
+      
+      // Find partner and update password
+      const partner = await storage.getPartnerByEmail(tokenData.email);
+      if (!partner) {
+        return res.status(404).json({ error: "Partner not found" });
+      }
+      
+      // Hash new password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update partner password
+      await storage.updatePartner(partner.id, {
+        password: hashedPassword,
+      });
+      
+      // Delete the used token
+      global.passwordResetTokens.delete(token);
+      
+      res.json({ success: true, message: "Password reset successfully" });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ error: "Failed to reset password" });
+    }
   });
 
   app.get("/api/partner/me", async (req, res) => {
     try {
-      // For now, return mock partner data
-      const mockPartner = {
-        id: 1,
-        name: "Test Partner",
-        email: "partner@test.com",
-        referralCode: "TESTREF123",
-        commissionRate: "5",
-        commissionType: "percentage",
-        status: "active",
-        clickCount: 156,
-        conversionCount: 12,
-        totalRevenue: "2400",
-        totalCommissions: "120",
-      };
+      if (!req.session.partnerId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
       
-      res.json(mockPartner);
+      const partner = await storage.getPartner(req.session.partnerId);
+      if (!partner) {
+        return res.status(404).json({ error: "Partner not found" });
+      }
+      
+      // Remove password from response
+      const { password: _, ...partnerWithoutPassword } = partner;
+      res.json(partnerWithoutPassword);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch partner data" });
     }
@@ -406,37 +476,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/partner/commissions", async (req, res) => {
     try {
-      // Return mock commissions for now
-      const mockCommissions = [
-        {
-          id: 1,
-          partnerId: 1,
-          orderId: "ORDER-001",
-          customerEmail: "customer1@test.com",
-          orderValue: "199.99",
-          commissionAmount: "10.00",
-          commissionRate: "5",
-          couponCode: null,
-          couponDiscount: "0",
-          status: "approved",
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: 2,
-          partnerId: 1,
-          orderId: "ORDER-002",
-          customerEmail: "customer2@test.com",
-          orderValue: "299.99",
-          commissionAmount: "15.00",
-          commissionRate: "5",
-          couponCode: "SAVE10",
-          couponDiscount: "30.00",
-          status: "pending",
-          createdAt: new Date().toISOString(),
-        },
-      ];
+      if (!req.session.partnerId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
       
-      res.json(mockCommissions);
+      const commissions = await storage.getCommissionsByPartner(req.session.partnerId);
+      res.json(commissions);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch commissions" });
     }
@@ -444,25 +489,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/partner/clicks", async (req, res) => {
     try {
-      // Return mock click data
-      const mockClicks = [
-        {
-          id: 1,
-          partnerId: 1,
-          referrer: "google.com",
-          convertedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: 2,
-          partnerId: 1,
-          referrer: "facebook.com",
-          convertedAt: null,
-          createdAt: new Date().toISOString(),
-        },
-      ];
+      if (!req.session.partnerId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
       
-      res.json(mockClicks);
+      const clicks = await storage.getClicksByPartner(req.session.partnerId);
+      res.json(clicks);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch clicks" });
     }
@@ -470,38 +502,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/partner/payouts", async (req, res) => {
     try {
-      // Return mock payout data
-      const mockPayouts = [
-        {
-          id: 1,
-          partnerId: 1,
-          amount: "125.50",
-          method: "Bank Transfer",
-          status: "processed",
-          requestedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          processedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        },
-        {
-          id: 2,
-          partnerId: 1,
-          amount: "89.25",
-          method: "PayPal",
-          status: "pending",
-          requestedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          processedAt: null,
-        },
-        {
-          id: 3,
-          partnerId: 1,
-          amount: "75.00",
-          method: "Bank Transfer",
-          status: "processed",
-          requestedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-          processedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-        },
-      ];
+      if (!req.session.partnerId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
       
-      res.json(mockPayouts);
+      const payouts = await storage.getPayoutsByPartner(req.session.partnerId);
+      res.json(payouts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch payouts" });
     }

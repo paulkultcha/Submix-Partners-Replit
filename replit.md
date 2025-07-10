@@ -127,6 +127,13 @@ The application is designed for deployment on platforms like Replit, with proper
 
 ## Recent Changes
 
+### January 2025
+- **Fixed partner authentication persistence** - Resolved issue where partner signups weren't working for returning users by implementing proper password hashing and session management
+- **Added forgot password functionality** - Implemented complete password reset flow with email-based token system for partner authentication
+- **Enhanced partner portal security** - Updated all partner API endpoints to use proper session-based authentication instead of mock data
+- **Fixed partner payouts page** - Created missing partner payouts page with comprehensive functionality including payout history, status tracking, and request capabilities
+- **Integrated PostgreSQL database** - Set up proper database integration with sessions table for persistent authentication across partner portal
+
 ### December 2024
 - **Fixed coupon creation validation** - Resolved "Expected number, received string" error by updating form validation schema and data type conversion
 - **Implemented coupon edit functionality** - Added EditCouponDialog component with full CRUD operations and proper form validation
@@ -140,3 +147,6 @@ The application is designed for deployment on platforms like Replit, with proper
 - Working notification system with toast messages
 - Comprehensive reports with CSV export capabilities
 - Database integration with PostgreSQL and proper error handling
+- Partner authentication system with persistent sessions
+- Forgot password functionality with secure token-based reset
+- Complete partner portal with dashboard, performance tracking, commission management, and payout history
