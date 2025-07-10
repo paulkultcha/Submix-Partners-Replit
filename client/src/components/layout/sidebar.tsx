@@ -16,7 +16,7 @@ const analytics = [
 
 const settings = [
   { name: "Configuration", href: "/settings", icon: Settings },
-  { name: "API Keys", href: "/settings", icon: Key },
+  { name: "API Keys", href: "/api-keys", icon: Key },
 ];
 
 export function Sidebar() {

@@ -14,6 +14,7 @@ import Coupons from "@/pages/coupons";
 import Payouts from "@/pages/payouts";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
+import ApiKeys from "@/pages/api-keys";
 
 function Router() {
   return (
@@ -25,6 +26,7 @@ function Router() {
       <ProtectedRoute path="/payouts" component={Payouts} />
       <ProtectedRoute path="/reports" component={Reports} />
       <ProtectedRoute path="/settings" component={Settings} />
+      <ProtectedRoute path="/api-keys" component={ApiKeys} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
