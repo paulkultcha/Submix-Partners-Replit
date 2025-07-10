@@ -303,6 +303,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Partner authentication routes
+  app.post("/api/partner/register", async (req, res) => {
+    try {
+      const { name, email, password } = req.body;
+      
+      // Check if partner already exists
+      const existingPartner = await storage.getPartnerByEmail(email);
+      if (existingPartner) {
+        return res.status(400).json({ error: "Partner already exists" });
+      }
+      
+      // Generate unique referral code
+      const referralCode = randomBytes(8).toString('hex').toUpperCase();
+      
+      // Create partner with default settings
+      const partner = await storage.createPartner({
+        name,
+        email,
+        password,
+        referralCode,
+        commissionRate: "5", // Default 5% commission
+        commissionType: "percentage",
+        status: "active",
+        clickCount: 0,
+        conversionCount: 0,
+        totalRevenue: "0",
+        totalCommissions: "0",
+      });
+      
+      // Set up partner session
+      req.login(partner, { session: false }, (err) => {
+        if (err) {
+          return res.status(500).json({ error: "Failed to create session" });
+        }
+        res.json(partner);
+      });
+    } catch (error) {
+      console.error("Partner registration error:", error);
+      res.status(500).json({ error: "Failed to register partner" });
+    }
+  });
+
+  app.post("/api/partner/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      const partner = await storage.getPartnerByEmail(email);
+      if (!partner) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      
+      // For now, simple password check (in production, use bcrypt)
+      if (partner.password !== password) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      
+      // Set up partner session
+      req.login(partner, { session: false }, (err) => {
+        if (err) {
+          return res.status(500).json({ error: "Failed to create session" });
+        }
+        res.json(partner);
+      });
+    } catch (error) {
+      console.error("Partner login error:", error);
+      res.status(500).json({ error: "Failed to login" });
+    }
+  });
+
+  app.post("/api/partner/logout", async (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ error: "Failed to logout" });
+      }
+      res.json({ success: true });
+    });
+  });
+
+  app.get("/api/partner/me", async (req, res) => {
+    try {
+      // For now, return mock partner data
+      const mockPartner = {
+        id: 1,
+        name: "Test Partner",
+        email: "partner@test.com",
+        referralCode: "TESTREF123",
+        commissionRate: "5",
+        commissionType: "percentage",
+        status: "active",
+        clickCount: 156,
+        conversionCount: 12,
+        totalRevenue: "2400",
+        totalCommissions: "120",
+      };
+      
+      res.json(mockPartner);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch partner data" });
+    }
+  });
+
+  app.get("/api/partner/commissions", async (req, res) => {
+    try {
+      // Return mock commissions for now
+      const mockCommissions = [
+        {
+          id: 1,
+          partnerId: 1,
+          orderId: "ORDER-001",
+          customerEmail: "customer1@test.com",
+          orderValue: "199.99",
+          commissionAmount: "10.00",
+          commissionRate: "5",
+          couponCode: null,
+          couponDiscount: "0",
+          status: "approved",
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: 2,
+          partnerId: 1,
+          orderId: "ORDER-002",
+          customerEmail: "customer2@test.com",
+          orderValue: "299.99",
+          commissionAmount: "15.00",
+          commissionRate: "5",
+          couponCode: "SAVE10",
+          couponDiscount: "30.00",
+          status: "pending",
+          createdAt: new Date().toISOString(),
+        },
+      ];
+      
+      res.json(mockCommissions);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch commissions" });
+    }
+  });
+
+  app.get("/api/partner/clicks", async (req, res) => {
+    try {
+      // Return mock click data
+      const mockClicks = [
+        {
+          id: 1,
+          partnerId: 1,
+          referrer: "google.com",
+          convertedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: 2,
+          partnerId: 1,
+          referrer: "facebook.com",
+          convertedAt: null,
+          createdAt: new Date().toISOString(),
+        },
+      ];
+      
+      res.json(mockClicks);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch clicks" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

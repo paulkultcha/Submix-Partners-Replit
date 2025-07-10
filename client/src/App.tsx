@@ -4,7 +4,9 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "./hooks/use-auth";
+import { PartnerAuthProvider } from "./hooks/use-partner-auth";
 import { ProtectedRoute } from "./lib/protected-route";
+import { PartnerProtectedRoute } from "./lib/partner-protected-route";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
@@ -15,10 +17,15 @@ import Payouts from "@/pages/payouts";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import ApiKeys from "@/pages/api-keys";
+import PartnerAuth from "@/pages/partner-auth";
+import PartnerDashboard from "@/pages/partner-dashboard";
+import PartnerPerformance from "@/pages/partner-performance";
+import PartnerCommissions from "@/pages/partner-commissions";
 
 function Router() {
   return (
     <Switch>
+      {/* Admin Routes */}
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/partners" component={Partners} />
       <ProtectedRoute path="/commissions" component={Commissions} />
@@ -28,6 +35,13 @@ function Router() {
       <ProtectedRoute path="/settings" component={Settings} />
       <ProtectedRoute path="/api-keys" component={ApiKeys} />
       <Route path="/auth" component={AuthPage} />
+      
+      {/* Partner Routes */}
+      <Route path="/partner/auth" component={PartnerAuth} />
+      <PartnerProtectedRoute path="/partner/dashboard" component={PartnerDashboard} />
+      <PartnerProtectedRoute path="/partner/performance" component={PartnerPerformance} />
+      <PartnerProtectedRoute path="/partner/commissions" component={PartnerCommissions} />
+      
       <Route component={NotFound} />
     </Switch>
   );
@@ -37,10 +51,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <PartnerAuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </PartnerAuthProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
