@@ -5,6 +5,24 @@ import { setupAuth } from "./auth";
 import { insertPartnerSchema, insertCommissionSchema, insertCouponSchema } from "@shared/schema";
 import { z } from "zod";
 import { randomBytes } from "crypto";
+import { scrypt, timingSafeEqual } from "crypto";
+import { promisify } from "util";
+
+const scryptAsync = promisify(scrypt);
+
+// Password utility functions
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
+
+async function comparePasswords(supplied: string, stored: string) {
+  const [hashed, salt] = stored.split(".");
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
