@@ -136,10 +136,11 @@ The application is designed for deployment on platforms like Replit, with proper
 - **Enhanced partner management with advanced settings** - Added new fields for commission period months, new customers only flag, and coupon usage requirements in both admin and partner portals
 - **Added company name and website fields** - Enhanced partner management system to include company name and website information in both admin and partner portals, including registration forms and partner table display
 - **Fixed partner authentication persistence** - Resolved issue where partner signups weren't working for returning users by implementing proper password hashing and session management
-- **Added forgot password functionality** - Implemented complete password reset flow with email-based token system for partner authentication
+- **Added forgot password functionality** - Implemented complete password reset flow with email-based token system for both admin and partner authentication, including secure token management and password reset UI
 - **Enhanced partner portal security** - Updated all partner API endpoints to use proper session-based authentication instead of mock data
 - **Fixed partner payouts page** - Created missing partner payouts page with comprehensive functionality including payout history, status tracking, and request capabilities
 - **Integrated PostgreSQL database** - Set up proper database integration with sessions table for persistent authentication across partner portal
+- **Added admin forgot password system** - Implemented complete password reset functionality for admin users with secure token-based email reset system, including admin-generated reset tokens and password reset UI modals
 
 ### December 2024
 - **Fixed coupon creation validation** - Resolved "Expected number, received string" error by updating form validation schema and data type conversion

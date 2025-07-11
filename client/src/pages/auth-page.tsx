@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Music } from "lucide-react";
 import { z } from "zod";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -23,10 +25,28 @@ const registerSchema = z.object({
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
   const [, navigate] = useLocation();
+  const { toast } = useToast();
   const [loginForm, setLoginForm] = useState({ username: "", password: "" });
   const [registerForm, setRegisterForm] = useState({ username: "", email: "", password: "" });
+  const [forgotPasswordForm, setForgotPasswordForm] = useState({ email: "" });
+  const [resetPasswordForm, setResetPasswordForm] = useState({ token: "", password: "", confirmPassword: "" });
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({});
   const [registerErrors, setRegisterErrors] = useState<Record<string, string>>({});
+  const [forgotPasswordErrors, setForgotPasswordErrors] = useState<Record<string, string>>({});
+  const [resetPasswordErrors, setResetPasswordErrors] = useState<Record<string, string>>({});
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Check for reset token in URL params on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) {
+      setResetPasswordForm(prev => ({ ...prev, token }));
+      setShowResetPassword(true);
+    }
+  }, []);
 
   if (user) {
     navigate("/");
@@ -69,6 +89,98 @@ export default function AuthPage() {
     }
 
     registerMutation.mutate(registerForm);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotPasswordErrors({});
+    setIsSubmitting(true);
+
+    if (!forgotPasswordForm.email) {
+      setForgotPasswordErrors({ email: "Email is required" });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const res = await apiRequest("POST", "/api/auth/forgot-password", forgotPasswordForm);
+      if (res.ok) {
+        toast({
+          title: "Password reset email sent",
+          description: "Check your email for password reset instructions",
+        });
+        setShowForgotPassword(false);
+        setForgotPasswordForm({ email: "" });
+      } else {
+        const error = await res.json();
+        toast({
+          title: "Error",
+          description: error.error || "Failed to send reset email",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send reset email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetPasswordErrors({});
+    setIsSubmitting(true);
+
+    if (!resetPasswordForm.token || !resetPasswordForm.password || !resetPasswordForm.confirmPassword) {
+      setResetPasswordErrors({ 
+        token: !resetPasswordForm.token ? "Reset token is required" : "",
+        password: !resetPasswordForm.password ? "Password is required" : "",
+        confirmPassword: !resetPasswordForm.confirmPassword ? "Confirm password is required" : "",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (resetPasswordForm.password !== resetPasswordForm.confirmPassword) {
+      setResetPasswordErrors({ confirmPassword: "Passwords do not match" });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const res = await apiRequest("POST", "/api/auth/reset-password", {
+        token: resetPasswordForm.token,
+        password: resetPasswordForm.password,
+      });
+      
+      if (res.ok) {
+        toast({
+          title: "Password reset successful",
+          description: "You can now login with your new password",
+        });
+        setShowResetPassword(false);
+        setResetPasswordForm({ token: "", password: "", confirmPassword: "" });
+      } else {
+        const error = await res.json();
+        toast({
+          title: "Error",
+          description: error.error || "Failed to reset password",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reset password",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -147,6 +259,16 @@ export default function AuthPage() {
                       )}
                     </Button>
                   </form>
+                  
+                  <div className="mt-4 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-sm text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -218,6 +340,16 @@ export default function AuthPage() {
                       )}
                     </Button>
                   </form>
+                  
+                  <div className="mt-4 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-sm text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -260,6 +392,114 @@ export default function AuthPage() {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Forgot Password</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              Enter your email address and we'll send you a link to reset your password.
+            </p>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div>
+                <Label htmlFor="forgot-email">Email</Label>
+                <Input
+                  id="forgot-email"
+                  type="email"
+                  value={forgotPasswordForm.email}
+                  onChange={(e) => setForgotPasswordForm({ email: e.target.value })}
+                  className={forgotPasswordErrors.email ? "border-destructive" : ""}
+                />
+                {forgotPasswordErrors.email && (
+                  <p className="text-sm text-destructive">{forgotPasswordErrors.email}</p>
+                )}
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowForgotPassword(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Send Reset Link
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {showResetPassword && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Reset Password</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              Enter your reset token and new password.
+            </p>
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <Label htmlFor="reset-token">Reset Token</Label>
+                <Input
+                  id="reset-token"
+                  type="text"
+                  value={resetPasswordForm.token}
+                  onChange={(e) => setResetPasswordForm({ ...resetPasswordForm, token: e.target.value })}
+                  className={resetPasswordErrors.token ? "border-destructive" : ""}
+                />
+                {resetPasswordErrors.token && (
+                  <p className="text-sm text-destructive">{resetPasswordErrors.token}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="reset-password">New Password</Label>
+                <Input
+                  id="reset-password"
+                  type="password"
+                  value={resetPasswordForm.password}
+                  onChange={(e) => setResetPasswordForm({ ...resetPasswordForm, password: e.target.value })}
+                  className={resetPasswordErrors.password ? "border-destructive" : ""}
+                />
+                {resetPasswordErrors.password && (
+                  <p className="text-sm text-destructive">{resetPasswordErrors.password}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={resetPasswordForm.confirmPassword}
+                  onChange={(e) => setResetPasswordForm({ ...resetPasswordForm, confirmPassword: e.target.value })}
+                  className={resetPasswordErrors.confirmPassword ? "border-destructive" : ""}
+                />
+                {resetPasswordErrors.confirmPassword && (
+                  <p className="text-sm text-destructive">{resetPasswordErrors.confirmPassword}</p>
+                )}
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowResetPassword(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Reset Password
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

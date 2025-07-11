@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Edit, Trash2, Shield } from "lucide-react";
+import { Plus, Edit, Trash2, Shield, Key } from "lucide-react";
 import { User } from "@shared/schema";
 import { AddUserDialog } from "@/components/users/add-user-dialog";
 import { EditUserDialog } from "@/components/users/edit-user-dialog";
@@ -40,6 +40,27 @@ export default function Users() {
       toast({
         title: "Error",
         description: "Failed to delete user",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const res = await apiRequest("POST", "/api/auth/admin-reset-password", { userId });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Reset Token Generated",
+        description: `Password reset token: ${data.token}`,
+        duration: 10000,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to generate reset token",
         variant: "destructive",
       });
     },
@@ -175,6 +196,14 @@ export default function Users() {
                                 onClick={() => handleEditUser(user)}
                               >
                                 <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => resetPasswordMutation.mutate(user.id)}
+                                disabled={resetPasswordMutation.isPending}
+                              >
+                                <Key className="h-4 w-4 text-blue-600" />
                               </Button>
                               <Button 
                                 variant="ghost" 

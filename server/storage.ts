@@ -5,6 +5,8 @@ import {
   coupons, 
   payouts, 
   clicks,
+  passwordResetTokens,
+  customerHistory,
   type User, 
   type InsertUser,
   type Partner,
@@ -16,7 +18,11 @@ import {
   type Payout,
   type InsertPayout,
   type Click,
-  type InsertClick
+  type InsertClick,
+  type PasswordResetToken,
+  type InsertPasswordResetToken,
+  type CustomerHistory,
+  type InsertCustomerHistory
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sum, count, sql, and, gte, lte } from "drizzle-orm";
@@ -82,6 +88,17 @@ export interface IStorage {
   
   getTopPartners(limit?: number): Promise<Array<Partner & { monthlyRevenue: number; monthlyCommissions: number; }>>;
   getRevenueByMonth(months: number): Promise<Array<{ month: string; revenue: number; }>>;
+  
+  // Password reset token methods
+  createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | null>;
+  markPasswordResetTokenUsed(tokenId: number): Promise<void>;
+  deleteExpiredPasswordResetTokens(): Promise<void>;
+  
+  // Customer history methods
+  createCustomerHistory(data: InsertCustomerHistory): Promise<CustomerHistory>;
+  getCustomerHistory(customerEmail: string): Promise<CustomerHistory | null>;
+  updateCustomerHistory(id: number, data: Partial<CustomerHistory>): Promise<CustomerHistory>;
   
   sessionStore: session.Store;
 }
@@ -363,6 +380,41 @@ export class DatabaseStorage implements IStorage {
       month: row.month,
       revenue: Number(row.revenue) || 0,
     }));
+  }
+
+  // Password reset token methods
+  async createPasswordResetToken(data: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const [token] = await db.insert(passwordResetTokens).values(data).returning();
+    return token;
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | null> {
+    const [resetToken] = await db.select().from(passwordResetTokens).where(eq(passwordResetTokens.token, token));
+    return resetToken || null;
+  }
+
+  async markPasswordResetTokenUsed(tokenId: number): Promise<void> {
+    await db.update(passwordResetTokens).set({ used: true }).where(eq(passwordResetTokens.id, tokenId));
+  }
+
+  async deleteExpiredPasswordResetTokens(): Promise<void> {
+    await db.delete(passwordResetTokens).where(lte(passwordResetTokens.expiresAt, new Date()));
+  }
+
+  // Customer history methods
+  async createCustomerHistory(data: InsertCustomerHistory): Promise<CustomerHistory> {
+    const [history] = await db.insert(customerHistory).values(data).returning();
+    return history;
+  }
+
+  async getCustomerHistory(customerEmail: string): Promise<CustomerHistory | null> {
+    const [history] = await db.select().from(customerHistory).where(eq(customerHistory.customerEmail, customerEmail));
+    return history || null;
+  }
+
+  async updateCustomerHistory(id: number, data: Partial<CustomerHistory>): Promise<CustomerHistory> {
+    const [history] = await db.update(customerHistory).set(data).where(eq(customerHistory.id, id)).returning();
+    return history;
   }
 }
 
