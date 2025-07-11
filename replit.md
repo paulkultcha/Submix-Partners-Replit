@@ -128,6 +128,9 @@ The application is designed for deployment on platforms like Replit, with proper
 ## Recent Changes
 
 ### January 2025
+- **Implemented advanced commission payout models** - Added three new commission processing features: (1) New customers only commissions, (2) Commission payouts after coupon value fully used, (3) Adjustable commission payment periods per partner
+- **Added comprehensive commission processor** - Created server-side commission processing engine with customer history tracking, commission validation rules, and automated payment decisions
+- **Enhanced partner management with advanced settings** - Added new fields for commission period months, new customers only flag, and coupon usage requirements in both admin and partner portals
 - **Added company name and website fields** - Enhanced partner management system to include company name and website information in both admin and partner portals, including registration forms and partner table display
 - **Fixed partner authentication persistence** - Resolved issue where partner signups weren't working for returning users by implementing proper password hashing and session management
 - **Added forgot password functionality** - Implemented complete password reset flow with email-based token system for partner authentication

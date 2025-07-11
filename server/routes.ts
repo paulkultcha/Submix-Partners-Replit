@@ -7,6 +7,7 @@ import { z } from "zod";
 import { randomBytes } from "crypto";
 import { scrypt, timingSafeEqual } from "crypto";
 import { promisify } from "util";
+import { commissionProcessor, ProcessCommissionParams } from "./commissionProcessor";
 
 const scryptAsync = promisify(scrypt);
 
@@ -322,31 +323,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Calculate commission
-      const commissionRate = Number(partner.commissionRate);
-      const commissionAmount = (orderValue * commissionRate) / 100;
-
-      // Create commission record
-      await storage.createCommission({
+      // Use the new commission processor
+      const result = await commissionProcessor.processCommission({
         partnerId: partner.id,
         orderId,
         customerEmail,
-        orderValue: orderValue.toString(),
-        commissionAmount: commissionAmount.toString(),
-        commissionRate: commissionRate.toString(),
-        couponCode: couponCode || null,
-        couponDiscount: couponDiscount.toString(),
-        status: "approved",
+        orderValue,
+        couponCode,
+        couponDiscount,
       });
 
       // Update partner stats
       await storage.updatePartner(partner.id, {
         conversionCount: partner.conversionCount + 1,
         totalRevenue: (Number(partner.totalRevenue) + orderValue).toString(),
-        totalCommissions: (Number(partner.totalCommissions) + commissionAmount).toString(),
+        totalCommissions: result.shouldPay 
+          ? (Number(partner.totalCommissions) + result.commission.commissionAmount).toString()
+          : partner.totalCommissions,
       });
 
-      res.json({ success: true });
+      res.json({ 
+        success: true,
+        commission: result.commission,
+        shouldPay: result.shouldPay,
+        reason: result.reason
+      });
     } catch (error) {
       res.status(500).json({ error: "Failed to process conversion" });
     }
@@ -382,6 +383,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversionCount: 0,
         totalRevenue: "0",
         totalCommissions: "0",
+        companyName: req.body.companyName || null,
+        website: req.body.website || null,
+        newCustomersOnly: false,
+        commissionPeriodMonths: 12,
+        requireCouponUsage: false,
       });
       
       // Set up partner session

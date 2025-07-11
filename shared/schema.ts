@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, numeric, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, numeric, uuid, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -29,6 +29,10 @@ export const partners = pgTable("partners", {
   conversionCount: integer("conversion_count").default(0).notNull(),
   totalRevenue: numeric("total_revenue", { precision: 10, scale: 2 }).default("0").notNull(),
   totalCommissions: numeric("total_commissions", { precision: 10, scale: 2 }).default("0").notNull(),
+  // New commission model fields
+  newCustomersOnly: boolean("new_customers_only").default(false).notNull(), // Only pay for new customers
+  commissionPeriodMonths: integer("commission_period_months").default(12).notNull(), // How many months to pay commissions
+  requireCouponUsage: boolean("require_coupon_usage").default(false).notNull(), // Only pay after coupon value is used
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -43,8 +47,14 @@ export const commissions = pgTable("commissions", {
   commissionRate: numeric("commission_rate", { precision: 5, scale: 2 }).notNull(),
   couponCode: text("coupon_code"),
   couponDiscount: numeric("coupon_discount", { precision: 10, scale: 2 }).default("0").notNull(),
-  status: text("status").notNull().default("pending"), // pending, approved, paid, refunded
+  status: text("status").notNull().default("pending"), // pending, approved, paid, refunded, blocked
   payoutId: integer("payout_id"),
+  // New commission model fields
+  isNewCustomer: boolean("is_new_customer").default(true).notNull(), // Track if customer is new
+  customerFirstOrderDate: timestamp("customer_first_order_date"), // When customer first ordered
+  commissionValidUntil: timestamp("commission_valid_until"), // When commission period expires
+  couponValueUsed: numeric("coupon_value_used", { precision: 10, scale: 2 }).default("0").notNull(), // Track coupon usage
+  couponValueRequired: numeric("coupon_value_required", { precision: 10, scale: 2 }).default("0").notNull(), // Required coupon usage
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -87,6 +97,20 @@ export const clicks = pgTable("clicks", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// New table to track customer history for new customer detection
+export const customerHistory = pgTable("customer_history", {
+  id: serial("id").primaryKey(),
+  customerEmail: text("customer_email").notNull(),
+  firstOrderDate: timestamp("first_order_date").notNull(),
+  firstOrderId: text("first_order_id").notNull(),
+  firstPartnerId: integer("first_partner_id").references(() => partners.id),
+  totalOrders: integer("total_orders").default(1).notNull(),
+  totalSpent: numeric("total_spent", { precision: 10, scale: 2 }).default("0").notNull(),
+  lastOrderDate: timestamp("last_order_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const partnersRelations = relations(partners, ({ many }) => ({
   commissions: many(commissions),
@@ -119,6 +143,13 @@ export const payoutsRelations = relations(payouts, ({ one }) => ({
 export const clicksRelations = relations(clicks, ({ one }) => ({
   partner: one(partners, {
     fields: [clicks.partnerId],
+    references: [partners.id],
+  }),
+}));
+
+export const customerHistoryRelations = relations(customerHistory, ({ one }) => ({
+  firstPartner: one(partners, {
+    fields: [customerHistory.firstPartnerId],
     references: [partners.id],
   }),
 }));
@@ -177,3 +208,12 @@ export type Payout = typeof payouts.$inferSelect;
 export type InsertPayout = z.infer<typeof insertPayoutSchema>;
 export type Click = typeof clicks.$inferSelect;
 export type InsertClick = z.infer<typeof insertClickSchema>;
+
+export const insertCustomerHistorySchema = createInsertSchema(customerHistory).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CustomerHistory = typeof customerHistory.$inferSelect;
+export type InsertCustomerHistory = z.infer<typeof insertCustomerHistorySchema>;

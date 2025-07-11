@@ -35,6 +35,9 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
     payoutMethod: "paypal",
     payoutDetails: "",
     status: "active",
+    newCustomersOnly: false,
+    commissionPeriodMonths: 12,
+    requireCouponUsage: false,
   });
   const [enableCoupon, setEnableCoupon] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -67,6 +70,9 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
         payoutMethod: "paypal",
         payoutDetails: "",
         status: "active",
+        newCustomersOnly: false,
+        commissionPeriodMonths: 12,
+        requireCouponUsage: false,
       });
       setEnableCoupon(false);
       setErrors({});
@@ -214,6 +220,43 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
             <Label htmlFor="enableCoupon" className="text-sm">
               Enable coupon code generation
             </Label>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="commissionPeriodMonths">Commission Period (Months)</Label>
+            <Input
+              id="commissionPeriodMonths"
+              type="number"
+              value={formData.commissionPeriodMonths}
+              onChange={(e) => setFormData({ ...formData, commissionPeriodMonths: parseInt(e.target.value) || 12 })}
+              placeholder="12"
+              min="1"
+              max="60"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="newCustomersOnly" 
+                checked={formData.newCustomersOnly}
+                onCheckedChange={(checked) => setFormData({ ...formData, newCustomersOnly: !!checked })}
+              />
+              <Label htmlFor="newCustomersOnly" className="text-sm">
+                Pay commissions for new customers only
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="requireCouponUsage" 
+                checked={formData.requireCouponUsage}
+                onCheckedChange={(checked) => setFormData({ ...formData, requireCouponUsage: !!checked })}
+              />
+              <Label htmlFor="requireCouponUsage" className="text-sm">
+                Require coupon value to be fully used before paying commissions
+              </Label>
+            </div>
           </div>
           
           <div className="flex items-center justify-end space-x-3 pt-4">

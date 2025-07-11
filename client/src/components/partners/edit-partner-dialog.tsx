@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
 import { insertPartnerSchema, Partner } from "@shared/schema";
@@ -22,6 +23,9 @@ interface EditPartnerDialogProps {
 
 const editPartnerSchema = insertPartnerSchema.omit({ referralCode: true }).extend({
   commissionRate: z.number().min(0).max(100),
+  newCustomersOnly: z.boolean().optional(),
+  commissionPeriodMonths: z.number().min(1).max(60).optional(),
+  requireCouponUsage: z.boolean().optional(),
 });
 
 export function EditPartnerDialog({ open, onOpenChange, partner }: EditPartnerDialogProps) {
@@ -38,6 +42,9 @@ export function EditPartnerDialog({ open, onOpenChange, partner }: EditPartnerDi
       commissionType: "percentage",
       payoutMethod: "paypal",
       status: "active",
+      newCustomersOnly: false,
+      commissionPeriodMonths: 12,
+      requireCouponUsage: false,
     },
   });
 
@@ -52,6 +59,9 @@ export function EditPartnerDialog({ open, onOpenChange, partner }: EditPartnerDi
         commissionType: partner.commissionType,
         payoutMethod: partner.payoutMethod,
         status: partner.status,
+        newCustomersOnly: partner.newCustomersOnly || false,
+        commissionPeriodMonths: partner.commissionPeriodMonths || 12,
+        requireCouponUsage: partner.requireCouponUsage || false,
       });
     }
   }, [partner, form]);
@@ -251,6 +261,63 @@ export function EditPartnerDialog({ open, onOpenChange, partner }: EditPartnerDi
                     </SelectContent>
                   </Select>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="commissionPeriodMonths"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Commission Period (Months)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      max="60" 
+                      placeholder="12" 
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 12)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="newCustomersOnly"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox 
+                      checked={field.value} 
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Pay commissions for new customers only</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="requireCouponUsage"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox 
+                      checked={field.value} 
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Require coupon value to be fully used before paying commissions</FormLabel>
+                  </div>
                 </FormItem>
               )}
             />
