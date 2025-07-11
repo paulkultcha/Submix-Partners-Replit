@@ -142,6 +142,7 @@ The application is designed for deployment on platforms like Replit, with proper
 - **Integrated PostgreSQL database** - Set up proper database integration with sessions table for persistent authentication across partner portal
 - **Added admin forgot password system** - Implemented complete password reset functionality for admin users with secure token-based email reset system, including admin-generated reset tokens and password reset UI modals
 - **Integrated Submix branding** - Added official Submix logos throughout the application including sidebar, header, login page, and favicon. Set up comprehensive branding system with logo variants for different contexts (white, black, stacked, horizontal)
+- **Integrated Aktiv Grotesk fonts** - Implemented the complete Aktiv Grotesk font family throughout the application, replacing Inter with custom typography. Added font faces for Light (300), Regular (400), Medium (500), SemiBold (600), and Bold (700) weights with optimized rendering and kerning
 
 ### December 2024
 - **Fixed coupon creation validation** - Resolved "Expected number, received string" error by updating form validation schema and data type conversion

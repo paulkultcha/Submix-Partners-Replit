@@ -6,10 +6,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        'submix': ['Inter', 'system-ui', 'sans-serif'], // Will be replaced with actual Submix fonts
-        'display': ['Inter', 'system-ui', 'sans-serif'],
-        'body': ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Aktiv Grotesk', 'system-ui', 'sans-serif'],
+        'submix': ['Aktiv Grotesk', 'system-ui', 'sans-serif'],
+        'display': ['Aktiv Grotesk', 'system-ui', 'sans-serif'],
+        'body': ['Aktiv Grotesk', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
