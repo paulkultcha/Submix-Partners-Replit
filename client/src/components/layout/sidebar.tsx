@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Music, BarChart3, Users, Percent, Ticket, DollarSign, FileText, Settings, Key } from "lucide-react";
+import { Music, BarChart3, Users, Percent, Ticket, DollarSign, FileText, Settings, Key, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -15,6 +15,7 @@ const analytics = [
 ];
 
 const settings = [
+  { name: "User Management", href: "/users", icon: UserCheck },
   { name: "Configuration", href: "/settings", icon: Settings },
   { name: "API Keys", href: "/api-keys", icon: Key },
 ];
@@ -86,7 +87,7 @@ export function Sidebar() {
         </ul>
         
         <div className="px-4 mt-8 mb-4">
-          <h2 className="text-xs font-medium text-slate-400 uppercase tracking-wide">Settings</h2>
+          <h2 className="text-xs font-medium text-slate-400 uppercase tracking-wide">Administration</h2>
         </div>
         <ul className="space-y-1 px-2">
           {settings.map((item) => {
