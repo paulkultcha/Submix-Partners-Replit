@@ -5,6 +5,12 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        'submix': ['Inter', 'system-ui', 'sans-serif'], // Will be replaced with actual Submix fonts
+        'display': ['Inter', 'system-ui', 'sans-serif'],
+        'body': ['Inter', 'system-ui', 'sans-serif'],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -60,6 +66,19 @@ export default {
           "accent-foreground": "var(--sidebar-accent-foreground)",
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
+        },
+        // Submix brand colors - customize these to match your brand
+        submix: {
+          50: 'hsl(210, 100%, 98%)',
+          100: 'hsl(210, 100%, 95%)',
+          200: 'hsl(210, 100%, 90%)',
+          300: 'hsl(210, 100%, 80%)',
+          400: 'hsl(210, 100%, 70%)',
+          500: 'hsl(210, 100%, 60%)',
+          600: 'hsl(210, 100%, 50%)',
+          700: 'hsl(210, 100%, 40%)',
+          800: 'hsl(210, 100%, 30%)',
+          900: 'hsl(210, 100%, 20%)',
         },
       },
       keyframes: {

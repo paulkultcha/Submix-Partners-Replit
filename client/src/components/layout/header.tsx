@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Moon, Bell } from "lucide-react";
+import { BrandFavicon } from "@/components/ui/brand-logo";
 
 interface HeaderProps {
   title: string;
@@ -26,6 +27,7 @@ export function Header({ title, subtitle }: HeaderProps) {
             <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
           </Button>
           <div className="flex items-center space-x-3">
+            <BrandFavicon size="md" />
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-medium">
                 {user?.username?.charAt(0)?.toUpperCase() || "U"}

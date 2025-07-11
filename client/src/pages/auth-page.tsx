@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Music } from "lucide-react";
+import { BrandLogo } from "@/components/ui/brand-logo";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -190,11 +191,9 @@ export default function AuthPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
-              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-                <Music className="w-6 h-6 text-white" />
-              </div>
+              <BrandLogo variant="default" size="xl" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">Submix Affiliate</h1>
+            <h1 className="text-2xl font-bold text-foreground">Affiliate Program</h1>
             <p className="text-muted-foreground mt-2">
               Sign in to your affiliate dashboard
             </p>

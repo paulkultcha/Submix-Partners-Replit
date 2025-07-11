@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Music, BarChart3, Users, Percent, Ticket, DollarSign, FileText, Settings, Key, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 const navigation = [
   { name: "Overview", href: "/", icon: BarChart3 },
@@ -27,11 +28,8 @@ export function Sidebar() {
     <div className="w-64 bg-secondary text-white fixed h-full z-10">
       <div className="p-6 border-b border-slate-700">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <Music className="text-white text-sm" />
-          </div>
+          <BrandLogo variant="white" size="md" />
           <div>
-            <h1 className="text-lg font-semibold">Submix</h1>
             <p className="text-xs text-slate-400">Affiliate Program</p>
           </div>
         </div>
