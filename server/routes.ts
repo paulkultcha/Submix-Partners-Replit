@@ -106,9 +106,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const id = parseInt(req.params.id);
+      console.log("Deleting partner ID:", id);
+      
+      // Validate the partner exists
+      const existingPartner = await storage.getPartner(id);
+      if (!existingPartner) {
+        return res.status(404).json({ error: "Partner not found" });
+      }
+      
       await storage.deletePartner(id);
+      console.log("Partner deleted successfully:", id);
       res.sendStatus(204);
     } catch (error) {
+      console.error("Partner deletion error:", error);
       res.status(500).json({ error: "Failed to delete partner" });
     }
   });
