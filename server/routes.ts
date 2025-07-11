@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertPartnerSchema, insertCommissionSchema, insertCouponSchema } from "@shared/schema";
+import { insertPartnerSchema, insertPartnerWithPasswordSchema, insertCommissionSchema, insertCouponSchema } from "@shared/schema";
 import { z } from "zod";
 import { randomBytes } from "crypto";
 import { scrypt, timingSafeEqual } from "crypto";
@@ -55,8 +55,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
-      // Use schema without referralCode and password since we generate them server-side
-      const partnerSchema = insertPartnerSchema.omit({ referralCode: true, password: true });
+      // Use schema without referralCode since we generate it server-side
+      const partnerSchema = insertPartnerSchema.omit({ referralCode: true });
 
       const partnerData = partnerSchema.parse(req.body);
       
@@ -66,11 +66,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate temporary password for admin-created partners
       const tempPassword = await hashPassword("temp_password_needs_reset");
       
-      const partner = await storage.createPartner({
+      const finalPartnerData = {
         ...partnerData,
         referralCode,
         password: tempPassword,
-      });
+      };
+      
+      console.log("Creating partner with data:", finalPartnerData);
+      
+      const partner = await storage.createPartner(finalPartnerData);
       
       res.status(201).json(partner);
     } catch (error) {

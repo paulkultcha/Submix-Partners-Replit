@@ -133,6 +133,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPartner(partner: InsertPartner): Promise<Partner> {
+    console.log("Storage createPartner called with:", partner);
     const [newPartner] = await db.insert(partners).values(partner).returning();
     return newPartner;
   }

@@ -171,6 +171,17 @@ export const insertPartnerSchema = createInsertSchema(partners).omit({
   password: true, // Password is only used for partner authentication, not admin partner management
 });
 
+// Schema for admin partner creation (includes password)
+export const insertPartnerWithPasswordSchema = createInsertSchema(partners).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  clickCount: true,
+  conversionCount: true,
+  totalRevenue: true,
+  totalCommissions: true,
+});
+
 export const insertCommissionSchema = createInsertSchema(commissions).omit({
   id: true,
   createdAt: true,
