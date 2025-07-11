@@ -27,10 +27,10 @@ export function Sidebar() {
   return (
     <div className="w-64 bg-secondary text-white fixed h-full z-10">
       <div className="p-6 border-b border-slate-700">
-        <div className="flex items-center space-x-3">
-          <BrandLogo variant="white" size="md" />
+        <div className="flex flex-col items-center space-y-2">
+          <BrandLogo variant="white" size="lg" />
           <div>
-            <p className="text-xs text-slate-400">Affiliate Program</p>
+            <p className="text-xs text-slate-400 text-center">Partner Program</p>
           </div>
         </div>
       </div>
