@@ -105,6 +105,24 @@ export default function PartnerDashboard() {
         />
         
         <div className="p-6 space-y-6">
+          {/* Pending Status Alert */}
+          {partnerData?.status === "pending" && (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+              <div className="flex">
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Account Pending Approval
+                  </h3>
+                  <div className="mt-2 text-sm text-yellow-700">
+                    <p>
+                      Your partner account is awaiting admin approval. You'll receive commission tracking and full access once approved.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>

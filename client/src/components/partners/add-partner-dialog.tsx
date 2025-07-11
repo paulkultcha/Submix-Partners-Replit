@@ -34,7 +34,7 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
     commissionType: "percentage",
     payoutMethod: "paypal",
     payoutDetails: "",
-    status: "active",
+    status: "pending", // Admin-created partners start as pending for approval
     newCustomersOnly: false,
     commissionPeriodMonths: 12,
     requireCouponUsage: false,
@@ -69,7 +69,7 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
         commissionType: "percentage",
         payoutMethod: "paypal",
         payoutDetails: "",
-        status: "active",
+        status: "pending", // Reset to pending for new partner
         newCustomersOnly: false,
         commissionPeriodMonths: 12,
         requireCouponUsage: false,

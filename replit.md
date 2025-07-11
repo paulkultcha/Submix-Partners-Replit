@@ -128,6 +128,9 @@ The application is designed for deployment on platforms like Replit, with proper
 ## Recent Changes
 
 ### January 2025
+- **Implemented partner approval workflow** - Partners now default to "pending" status and require admin approval before commission tracking is enabled
+- **Fixed partner creation password constraint** - Resolved database constraint error by adding proper password hashing for admin-created partners
+- **Enhanced partner dashboard with status indicators** - Added pending approval notifications for partners awaiting admin approval
 - **Implemented advanced commission payout models** - Added three new commission processing features: (1) New customers only commissions, (2) Commission payouts after coupon value fully used, (3) Adjustable commission payment periods per partner
 - **Added comprehensive commission processor** - Created server-side commission processing engine with customer history tracking, commission validation rules, and automated payment decisions
 - **Enhanced partner management with advanced settings** - Added new fields for commission period months, new customers only flag, and coupon usage requirements in both admin and partner portals

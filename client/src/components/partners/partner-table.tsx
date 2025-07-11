@@ -45,6 +45,26 @@ export function PartnerTable() {
     },
   });
 
+  const updatePartnerStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      await apiRequest("PUT", `/api/partners/${id}`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/partners"] });
+      toast({
+        title: "Success",
+        description: "Partner status updated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update partner status",
+        variant: "destructive",
+      });
+    },
+  });
+
   const filteredPartners = partners?.filter(partner => {
     const matchesSearch = partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          partner.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -74,6 +94,14 @@ export function PartnerTable() {
   const handleEditPartner = (partner: Partner) => {
     setSelectedPartner(partner);
     setShowEditDialog(true);
+  };
+
+  const handleApprovePartner = (id: number) => {
+    updatePartnerStatusMutation.mutate({ id, status: "active" });
+  };
+
+  const handleRejectPartner = (id: number) => {
+    updatePartnerStatusMutation.mutate({ id, status: "inactive" });
   };
 
   if (isLoading) {
@@ -215,6 +243,26 @@ export function PartnerTable() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
+                          {partner.status === "pending" && (
+                            <>
+                              <Button 
+                                variant="default" 
+                                size="sm"
+                                onClick={() => handleApprovePartner(partner.id)}
+                                disabled={updatePartnerStatusMutation.isPending}
+                              >
+                                Approve
+                              </Button>
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => handleRejectPartner(partner.id)}
+                                disabled={updatePartnerStatusMutation.isPending}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          )}
                           <Button 
                             variant="ghost" 
                             size="sm"

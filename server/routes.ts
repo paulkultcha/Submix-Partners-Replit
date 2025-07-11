@@ -314,6 +314,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Partner not found" });
       }
 
+      // Check if partner is approved (not pending)
+      if (partner.status !== "active") {
+        return res.status(400).json({ error: "Partner is not approved for commission tracking" });
+      }
+
       let couponDiscount = 0;
       if (couponCode) {
         const coupon = await storage.getCouponByCode(couponCode);
@@ -378,7 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate unique referral code
       const referralCode = randomBytes(8).toString('hex').toUpperCase();
       
-      // Create partner with default settings
+      // Create partner with default settings (pending status for self-registration)
       const partner = await storage.createPartner({
         name,
         email,
@@ -386,7 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         referralCode,
         commissionRate: "5", // Default 5% commission
         commissionType: "percentage",
-        status: "active",
+        status: "pending", // Self-registered partners need admin approval
         clickCount: 0,
         conversionCount: 0,
         totalRevenue: "0",
