@@ -55,17 +55,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
-      // Use schema without referralCode since we generate it server-side
-      const partnerSchema = insertPartnerSchema.omit({ referralCode: true });
+      // Use schema without referralCode and password since we generate them server-side
+      const partnerSchema = insertPartnerSchema.omit({ referralCode: true, password: true });
 
       const partnerData = partnerSchema.parse(req.body);
       
       // Generate unique referral code
       const referralCode = randomBytes(8).toString('hex').toUpperCase();
       
+      // Generate temporary password for admin-created partners
+      const tempPassword = await hashPassword("temp_password_needs_reset");
+      
       const partner = await storage.createPartner({
         ...partnerData,
         referralCode,
+        password: tempPassword,
       });
       
       res.status(201).json(partner);
