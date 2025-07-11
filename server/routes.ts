@@ -769,6 +769,248 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fraud Detection API Routes
+  app.get("/api/fraud/alerts", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const alerts = await storage.getAllFraudAlerts();
+      res.json(alerts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch fraud alerts" });
+    }
+  });
+
+  app.get("/api/fraud/alerts/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const alert = await storage.getFraudAlert(parseInt(req.params.id));
+      if (!alert) {
+        return res.status(404).json({ error: "Alert not found" });
+      }
+      res.json(alert);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch fraud alert" });
+    }
+  });
+
+  app.post("/api/fraud/alerts", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const alert = await storage.createFraudAlert(req.body);
+      res.json(alert);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create fraud alert" });
+    }
+  });
+
+  app.put("/api/fraud/alerts/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const alert = await storage.updateFraudAlert(parseInt(req.params.id), req.body);
+      res.json(alert);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update fraud alert" });
+    }
+  });
+
+  app.get("/api/fraud/rules", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const rules = await storage.getAllFraudRules();
+      res.json(rules);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch fraud rules" });
+    }
+  });
+
+  app.post("/api/fraud/rules", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const rule = await storage.createFraudRule(req.body);
+      res.json(rule);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create fraud rule" });
+    }
+  });
+
+  app.put("/api/fraud/rules/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const rule = await storage.updateFraudRule(parseInt(req.params.id), req.body);
+      res.json(rule);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update fraud rule" });
+    }
+  });
+
+  // GDPR Compliance API Routes
+  app.get("/api/gdpr/consents", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const consents = await storage.getAllGdprConsents();
+      res.json(consents);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch GDPR consents" });
+    }
+  });
+
+  app.post("/api/gdpr/consents", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const consent = await storage.createGdprConsent(req.body);
+      res.json(consent);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create GDPR consent" });
+    }
+  });
+
+  app.get("/api/gdpr/data-requests", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const requests = await storage.getAllDataRequests();
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch data requests" });
+    }
+  });
+
+  app.post("/api/gdpr/data-requests", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const request = await storage.createDataRequest(req.body);
+      res.json(request);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create data request" });
+    }
+  });
+
+  app.put("/api/gdpr/data-requests/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const request = await storage.updateDataRequest(parseInt(req.params.id), req.body);
+      res.json(request);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update data request" });
+    }
+  });
+
+  app.get("/api/gdpr/retention-policies", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const policies = await storage.getAllDataRetentionPolicies();
+      res.json(policies);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch retention policies" });
+    }
+  });
+
+  app.post("/api/gdpr/retention-policies", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const policy = await storage.createDataRetentionPolicy(req.body);
+      res.json(policy);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create retention policy" });
+    }
+  });
+
+  app.put("/api/gdpr/retention-policies/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const policy = await storage.updateDataRetentionPolicy(parseInt(req.params.id), req.body);
+      res.json(policy);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update retention policy" });
+    }
+  });
+
+  // Audit Trail API Routes
+  app.get("/api/audit/logs", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const logs = await storage.getAllAuditLogs();
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch audit logs" });
+    }
+  });
+
+  app.get("/api/audit/logs/user/:userId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const logs = await storage.getAuditLogsByUser(parseInt(req.params.userId));
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch audit logs for user" });
+    }
+  });
+
+  app.get("/api/audit/logs/partner/:partnerId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const logs = await storage.getAuditLogsByPartner(parseInt(req.params.partnerId));
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch audit logs for partner" });
+    }
+  });
+
+  app.get("/api/audit/system-events", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const events = await storage.getAllSystemEvents();
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch system events" });
+    }
+  });
+
+  app.post("/api/audit/logs", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const logData = {
+        ...req.body,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      };
+      const log = await storage.createAuditLog(logData);
+      res.json(log);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create audit log" });
+    }
+  });
+
+  app.post("/api/audit/system-events", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const event = await storage.createSystemEvent(req.body);
+      res.json(event);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create system event" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

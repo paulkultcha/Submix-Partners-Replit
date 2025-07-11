@@ -121,6 +121,98 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Fraud Detection Tables
+export const fraudAlerts = pgTable("fraud_alerts", {
+  id: serial("id").primaryKey(),
+  partnerId: integer("partner_id").references(() => partners.id),
+  alertType: text("alert_type").notNull(), // suspicious_clicks, unusual_conversion_rate, rapid_signups, duplicate_referrals
+  severity: text("severity").notNull(), // low, medium, high, critical
+  status: text("status").notNull().default("open"), // open, investigating, resolved, false_positive
+  description: text("description").notNull(),
+  metadata: text("metadata"), // JSON string with additional data
+  investigatedBy: integer("investigated_by").references(() => users.id),
+  investigationNotes: text("investigation_notes"),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const fraudRules = pgTable("fraud_rules", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  ruleType: text("rule_type").notNull(), // click_velocity, conversion_rate, geographic, time_based
+  conditions: text("conditions").notNull(), // JSON string with rule conditions
+  threshold: numeric("threshold", { precision: 10, scale: 2 }).notNull(),
+  timeWindow: integer("time_window").notNull(), // in minutes
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// GDPR Compliance Tables
+export const gdprConsents = pgTable("gdpr_consents", {
+  id: serial("id").primaryKey(),
+  partnerId: integer("partner_id").references(() => partners.id),
+  consentType: text("consent_type").notNull(), // data_processing, marketing, analytics, cookies
+  consentGiven: boolean("consent_given").notNull(),
+  consentVersion: text("consent_version").notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  withdrawnAt: timestamp("withdrawn_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const dataRetentionPolicies = pgTable("data_retention_policies", {
+  id: serial("id").primaryKey(),
+  dataType: text("data_type").notNull(), // partner_data, commission_data, click_data, customer_data
+  retentionPeriod: integer("retention_period").notNull(), // in days
+  description: text("description").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const dataRequests = pgTable("data_requests", {
+  id: serial("id").primaryKey(),
+  partnerId: integer("partner_id").references(() => partners.id),
+  requestType: text("request_type").notNull(), // export, deletion, correction, restriction
+  status: text("status").notNull().default("pending"), // pending, processing, completed, rejected
+  requestDetails: text("request_details"),
+  responseData: text("response_data"), // JSON string with response
+  processedBy: integer("processed_by").references(() => users.id),
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Audit Trail Tables
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  partnerId: integer("partner_id").references(() => partners.id),
+  action: text("action").notNull(), // login, logout, create, update, delete, view
+  entityType: text("entity_type").notNull(), // partner, commission, coupon, payout, user
+  entityId: integer("entity_id"),
+  description: text("description").notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  previousValues: text("previous_values"), // JSON string with old values
+  newValues: text("new_values"), // JSON string with new values
+  metadata: text("metadata"), // JSON string with additional context
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const systemEvents = pgTable("system_events", {
+  id: serial("id").primaryKey(),
+  eventType: text("event_type").notNull(), // commission_processed, payout_created, fraud_detected, email_sent
+  severity: text("severity").notNull(), // info, warning, error, critical
+  description: text("description").notNull(),
+  metadata: text("metadata"), // JSON string with event data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const partnersRelations = relations(partners, ({ many }) => ({
   commissions: many(commissions),
@@ -160,6 +252,46 @@ export const clicksRelations = relations(clicks, ({ one }) => ({
 export const customerHistoryRelations = relations(customerHistory, ({ one }) => ({
   firstPartner: one(partners, {
     fields: [customerHistory.firstPartnerId],
+    references: [partners.id],
+  }),
+}));
+
+export const fraudAlertsRelations = relations(fraudAlerts, ({ one }) => ({
+  partner: one(partners, {
+    fields: [fraudAlerts.partnerId],
+    references: [partners.id],
+  }),
+  investigatedByUser: one(users, {
+    fields: [fraudAlerts.investigatedBy],
+    references: [users.id],
+  }),
+}));
+
+export const gdprConsentsRelations = relations(gdprConsents, ({ one }) => ({
+  partner: one(partners, {
+    fields: [gdprConsents.partnerId],
+    references: [partners.id],
+  }),
+}));
+
+export const dataRequestsRelations = relations(dataRequests, ({ one }) => ({
+  partner: one(partners, {
+    fields: [dataRequests.partnerId],
+    references: [partners.id],
+  }),
+  processedByUser: one(users, {
+    fields: [dataRequests.processedBy],
+    references: [users.id],
+  }),
+}));
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [auditLogs.userId],
+    references: [users.id],
+  }),
+  partner: one(partners, {
+    fields: [auditLogs.partnerId],
     references: [partners.id],
   }),
 }));
@@ -245,3 +377,66 @@ export type CustomerHistory = typeof customerHistory.$inferSelect;
 export type InsertCustomerHistory = z.infer<typeof insertCustomerHistorySchema>;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+
+// Fraud Detection Schemas
+export const insertFraudAlertSchema = createInsertSchema(fraudAlerts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFraudRuleSchema = createInsertSchema(fraudRules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// GDPR Compliance Schemas
+export const insertGdprConsentSchema = createInsertSchema(gdprConsents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDataRetentionPolicySchema = createInsertSchema(dataRetentionPolicies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDataRequestSchema = createInsertSchema(dataRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Audit Trail Schemas
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSystemEventSchema = createInsertSchema(systemEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Fraud Detection Types
+export type FraudAlert = typeof fraudAlerts.$inferSelect;
+export type InsertFraudAlert = z.infer<typeof insertFraudAlertSchema>;
+export type FraudRule = typeof fraudRules.$inferSelect;
+export type InsertFraudRule = z.infer<typeof insertFraudRuleSchema>;
+
+// GDPR Compliance Types
+export type GdprConsent = typeof gdprConsents.$inferSelect;
+export type InsertGdprConsent = z.infer<typeof insertGdprConsentSchema>;
+export type DataRetentionPolicy = typeof dataRetentionPolicies.$inferSelect;
+export type InsertDataRetentionPolicy = z.infer<typeof insertDataRetentionPolicySchema>;
+export type DataRequest = typeof dataRequests.$inferSelect;
+export type InsertDataRequest = z.infer<typeof insertDataRequestSchema>;
+
+// Audit Trail Types
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type SystemEvent = typeof systemEvents.$inferSelect;
+export type InsertSystemEvent = z.infer<typeof insertSystemEventSchema>;

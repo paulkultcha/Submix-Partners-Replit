@@ -7,6 +7,13 @@ import {
   clicks,
   passwordResetTokens,
   customerHistory,
+  fraudAlerts,
+  fraudRules,
+  gdprConsents,
+  dataRetentionPolicies,
+  dataRequests,
+  auditLogs,
+  systemEvents,
   type User, 
   type InsertUser,
   type Partner,
@@ -22,7 +29,21 @@ import {
   type PasswordResetToken,
   type InsertPasswordResetToken,
   type CustomerHistory,
-  type InsertCustomerHistory
+  type InsertCustomerHistory,
+  type FraudAlert,
+  type InsertFraudAlert,
+  type FraudRule,
+  type InsertFraudRule,
+  type GdprConsent,
+  type InsertGdprConsent,
+  type DataRetentionPolicy,
+  type InsertDataRetentionPolicy,
+  type DataRequest,
+  type InsertDataRequest,
+  type AuditLog,
+  type InsertAuditLog,
+  type SystemEvent,
+  type InsertSystemEvent
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sum, count, sql, and, gte, lte } from "drizzle-orm";
@@ -99,6 +120,50 @@ export interface IStorage {
   createCustomerHistory(data: InsertCustomerHistory): Promise<CustomerHistory>;
   getCustomerHistory(customerEmail: string): Promise<CustomerHistory | null>;
   updateCustomerHistory(id: number, data: Partial<CustomerHistory>): Promise<CustomerHistory>;
+  
+  // Fraud Detection methods
+  createFraudAlert(alert: InsertFraudAlert): Promise<FraudAlert>;
+  getFraudAlert(id: number): Promise<FraudAlert | undefined>;
+  getAllFraudAlerts(): Promise<FraudAlert[]>;
+  updateFraudAlert(id: number, alert: Partial<FraudAlert>): Promise<FraudAlert>;
+  getFraudAlertsByPartner(partnerId: number): Promise<FraudAlert[]>;
+  getFraudAlertsByStatus(status: string): Promise<FraudAlert[]>;
+  
+  createFraudRule(rule: InsertFraudRule): Promise<FraudRule>;
+  getFraudRule(id: number): Promise<FraudRule | undefined>;
+  getAllFraudRules(): Promise<FraudRule[]>;
+  updateFraudRule(id: number, rule: Partial<FraudRule>): Promise<FraudRule>;
+  getActiveFraudRules(): Promise<FraudRule[]>;
+  
+  // GDPR Compliance methods
+  createGdprConsent(consent: InsertGdprConsent): Promise<GdprConsent>;
+  getGdprConsent(id: number): Promise<GdprConsent | undefined>;
+  getGdprConsentsByPartner(partnerId: number): Promise<GdprConsent[]>;
+  updateGdprConsent(id: number, consent: Partial<GdprConsent>): Promise<GdprConsent>;
+  
+  createDataRetentionPolicy(policy: InsertDataRetentionPolicy): Promise<DataRetentionPolicy>;
+  getDataRetentionPolicy(id: number): Promise<DataRetentionPolicy | undefined>;
+  getAllDataRetentionPolicies(): Promise<DataRetentionPolicy[]>;
+  updateDataRetentionPolicy(id: number, policy: Partial<DataRetentionPolicy>): Promise<DataRetentionPolicy>;
+  
+  createDataRequest(request: InsertDataRequest): Promise<DataRequest>;
+  getDataRequest(id: number): Promise<DataRequest | undefined>;
+  getAllDataRequests(): Promise<DataRequest[]>;
+  updateDataRequest(id: number, request: Partial<DataRequest>): Promise<DataRequest>;
+  getDataRequestsByPartner(partnerId: number): Promise<DataRequest[]>;
+  
+  // Audit Trail methods
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLog(id: number): Promise<AuditLog | undefined>;
+  getAllAuditLogs(): Promise<AuditLog[]>;
+  getAuditLogsByUser(userId: number): Promise<AuditLog[]>;
+  getAuditLogsByPartner(partnerId: number): Promise<AuditLog[]>;
+  getAuditLogsByEntity(entityType: string, entityId: number): Promise<AuditLog[]>;
+  
+  createSystemEvent(event: InsertSystemEvent): Promise<SystemEvent>;
+  getSystemEvent(id: number): Promise<SystemEvent | undefined>;
+  getAllSystemEvents(): Promise<SystemEvent[]>;
+  getSystemEventsByType(eventType: string): Promise<SystemEvent[]>;
   
   sessionStore: session.Store;
 }
@@ -415,6 +480,290 @@ export class DatabaseStorage implements IStorage {
   async updateCustomerHistory(id: number, data: Partial<CustomerHistory>): Promise<CustomerHistory> {
     const [history] = await db.update(customerHistory).set(data).where(eq(customerHistory.id, id)).returning();
     return history;
+  }
+
+  // Fraud Detection methods
+  async createFraudAlert(alert: InsertFraudAlert): Promise<FraudAlert> {
+    const [fraudAlert] = await db
+      .insert(fraudAlerts)
+      .values(alert)
+      .returning();
+    return fraudAlert;
+  }
+
+  async getFraudAlert(id: number): Promise<FraudAlert | undefined> {
+    const [fraudAlert] = await db
+      .select()
+      .from(fraudAlerts)
+      .where(eq(fraudAlerts.id, id));
+    return fraudAlert;
+  }
+
+  async getAllFraudAlerts(): Promise<FraudAlert[]> {
+    return await db
+      .select()
+      .from(fraudAlerts)
+      .orderBy(desc(fraudAlerts.createdAt));
+  }
+
+  async updateFraudAlert(id: number, alert: Partial<FraudAlert>): Promise<FraudAlert> {
+    const [fraudAlert] = await db
+      .update(fraudAlerts)
+      .set({ ...alert, updatedAt: new Date() })
+      .where(eq(fraudAlerts.id, id))
+      .returning();
+    return fraudAlert;
+  }
+
+  async getFraudAlertsByPartner(partnerId: number): Promise<FraudAlert[]> {
+    return await db
+      .select()
+      .from(fraudAlerts)
+      .where(eq(fraudAlerts.partnerId, partnerId))
+      .orderBy(desc(fraudAlerts.createdAt));
+  }
+
+  async getFraudAlertsByStatus(status: string): Promise<FraudAlert[]> {
+    return await db
+      .select()
+      .from(fraudAlerts)
+      .where(eq(fraudAlerts.status, status))
+      .orderBy(desc(fraudAlerts.createdAt));
+  }
+
+  async createFraudRule(rule: InsertFraudRule): Promise<FraudRule> {
+    const [fraudRule] = await db
+      .insert(fraudRules)
+      .values(rule)
+      .returning();
+    return fraudRule;
+  }
+
+  async getFraudRule(id: number): Promise<FraudRule | undefined> {
+    const [fraudRule] = await db
+      .select()
+      .from(fraudRules)
+      .where(eq(fraudRules.id, id));
+    return fraudRule;
+  }
+
+  async getAllFraudRules(): Promise<FraudRule[]> {
+    return await db
+      .select()
+      .from(fraudRules)
+      .orderBy(desc(fraudRules.createdAt));
+  }
+
+  async updateFraudRule(id: number, rule: Partial<FraudRule>): Promise<FraudRule> {
+    const [fraudRule] = await db
+      .update(fraudRules)
+      .set({ ...rule, updatedAt: new Date() })
+      .where(eq(fraudRules.id, id))
+      .returning();
+    return fraudRule;
+  }
+
+  async getActiveFraudRules(): Promise<FraudRule[]> {
+    return await db
+      .select()
+      .from(fraudRules)
+      .where(eq(fraudRules.isActive, true))
+      .orderBy(desc(fraudRules.createdAt));
+  }
+
+  // GDPR Compliance methods
+  async createGdprConsent(consent: InsertGdprConsent): Promise<GdprConsent> {
+    const [gdprConsent] = await db
+      .insert(gdprConsents)
+      .values(consent)
+      .returning();
+    return gdprConsent;
+  }
+
+  async getGdprConsent(id: number): Promise<GdprConsent | undefined> {
+    const [gdprConsent] = await db
+      .select()
+      .from(gdprConsents)
+      .where(eq(gdprConsents.id, id));
+    return gdprConsent;
+  }
+
+  async getGdprConsentsByPartner(partnerId: number): Promise<GdprConsent[]> {
+    return await db
+      .select()
+      .from(gdprConsents)
+      .where(eq(gdprConsents.partnerId, partnerId))
+      .orderBy(desc(gdprConsents.createdAt));
+  }
+
+  async getAllGdprConsents(): Promise<GdprConsent[]> {
+    return await db
+      .select()
+      .from(gdprConsents)
+      .orderBy(desc(gdprConsents.createdAt));
+  }
+
+  async updateGdprConsent(id: number, consent: Partial<GdprConsent>): Promise<GdprConsent> {
+    const [gdprConsent] = await db
+      .update(gdprConsents)
+      .set({ ...consent, updatedAt: new Date() })
+      .where(eq(gdprConsents.id, id))
+      .returning();
+    return gdprConsent;
+  }
+
+  async createDataRetentionPolicy(policy: InsertDataRetentionPolicy): Promise<DataRetentionPolicy> {
+    const [dataRetentionPolicy] = await db
+      .insert(dataRetentionPolicies)
+      .values(policy)
+      .returning();
+    return dataRetentionPolicy;
+  }
+
+  async getDataRetentionPolicy(id: number): Promise<DataRetentionPolicy | undefined> {
+    const [dataRetentionPolicy] = await db
+      .select()
+      .from(dataRetentionPolicies)
+      .where(eq(dataRetentionPolicies.id, id));
+    return dataRetentionPolicy;
+  }
+
+  async getAllDataRetentionPolicies(): Promise<DataRetentionPolicy[]> {
+    return await db
+      .select()
+      .from(dataRetentionPolicies)
+      .orderBy(desc(dataRetentionPolicies.createdAt));
+  }
+
+  async updateDataRetentionPolicy(id: number, policy: Partial<DataRetentionPolicy>): Promise<DataRetentionPolicy> {
+    const [dataRetentionPolicy] = await db
+      .update(dataRetentionPolicies)
+      .set({ ...policy, updatedAt: new Date() })
+      .where(eq(dataRetentionPolicies.id, id))
+      .returning();
+    return dataRetentionPolicy;
+  }
+
+  async createDataRequest(request: InsertDataRequest): Promise<DataRequest> {
+    const [dataRequest] = await db
+      .insert(dataRequests)
+      .values(request)
+      .returning();
+    return dataRequest;
+  }
+
+  async getDataRequest(id: number): Promise<DataRequest | undefined> {
+    const [dataRequest] = await db
+      .select()
+      .from(dataRequests)
+      .where(eq(dataRequests.id, id));
+    return dataRequest;
+  }
+
+  async getAllDataRequests(): Promise<DataRequest[]> {
+    return await db
+      .select()
+      .from(dataRequests)
+      .orderBy(desc(dataRequests.createdAt));
+  }
+
+  async updateDataRequest(id: number, request: Partial<DataRequest>): Promise<DataRequest> {
+    const [dataRequest] = await db
+      .update(dataRequests)
+      .set({ ...request, updatedAt: new Date() })
+      .where(eq(dataRequests.id, id))
+      .returning();
+    return dataRequest;
+  }
+
+  async getDataRequestsByPartner(partnerId: number): Promise<DataRequest[]> {
+    return await db
+      .select()
+      .from(dataRequests)
+      .where(eq(dataRequests.partnerId, partnerId))
+      .orderBy(desc(dataRequests.createdAt));
+  }
+
+  // Audit Trail methods
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const [auditLog] = await db
+      .insert(auditLogs)
+      .values(log)
+      .returning();
+    return auditLog;
+  }
+
+  async getAuditLog(id: number): Promise<AuditLog | undefined> {
+    const [auditLog] = await db
+      .select()
+      .from(auditLogs)
+      .where(eq(auditLogs.id, id));
+    return auditLog;
+  }
+
+  async getAllAuditLogs(): Promise<AuditLog[]> {
+    return await db
+      .select()
+      .from(auditLogs)
+      .orderBy(desc(auditLogs.createdAt));
+  }
+
+  async getAuditLogsByUser(userId: number): Promise<AuditLog[]> {
+    return await db
+      .select()
+      .from(auditLogs)
+      .where(eq(auditLogs.userId, userId))
+      .orderBy(desc(auditLogs.createdAt));
+  }
+
+  async getAuditLogsByPartner(partnerId: number): Promise<AuditLog[]> {
+    return await db
+      .select()
+      .from(auditLogs)
+      .where(eq(auditLogs.partnerId, partnerId))
+      .orderBy(desc(auditLogs.createdAt));
+  }
+
+  async getAuditLogsByEntity(entityType: string, entityId: number): Promise<AuditLog[]> {
+    return await db
+      .select()
+      .from(auditLogs)
+      .where(and(
+        eq(auditLogs.entityType, entityType),
+        eq(auditLogs.entityId, entityId)
+      ))
+      .orderBy(desc(auditLogs.createdAt));
+  }
+
+  async createSystemEvent(event: InsertSystemEvent): Promise<SystemEvent> {
+    const [systemEvent] = await db
+      .insert(systemEvents)
+      .values(event)
+      .returning();
+    return systemEvent;
+  }
+
+  async getSystemEvent(id: number): Promise<SystemEvent | undefined> {
+    const [systemEvent] = await db
+      .select()
+      .from(systemEvents)
+      .where(eq(systemEvents.id, id));
+    return systemEvent;
+  }
+
+  async getAllSystemEvents(): Promise<SystemEvent[]> {
+    return await db
+      .select()
+      .from(systemEvents)
+      .orderBy(desc(systemEvents.createdAt));
+  }
+
+  async getSystemEventsByType(eventType: string): Promise<SystemEvent[]> {
+    return await db
+      .select()
+      .from(systemEvents)
+      .where(eq(systemEvents.eventType, eventType))
+      .orderBy(desc(systemEvents.createdAt));
   }
 }
 

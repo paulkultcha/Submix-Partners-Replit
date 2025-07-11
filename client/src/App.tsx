@@ -18,6 +18,7 @@ import Reports from "@/pages/reports";
 import Users from "@/pages/users";
 import Settings from "@/pages/settings";
 import ApiKeys from "@/pages/api-keys";
+import SecurityPage from "@/pages/security";
 import PartnerAuth from "@/pages/partner-auth";
 import PartnerDashboard from "@/pages/partner-dashboard";
 import PartnerPerformance from "@/pages/partner-performance";
@@ -36,6 +37,7 @@ function Router() {
       <ProtectedRoute path="/payouts" component={Payouts} />
       <ProtectedRoute path="/reports" component={Reports} />
       <ProtectedRoute path="/users" component={Users} />
+      <ProtectedRoute path="/security" component={SecurityPage} />
       <ProtectedRoute path="/settings" component={Settings} />
       <ProtectedRoute path="/api-keys" component={ApiKeys} />
       <Route path="/auth" component={AuthPage} />

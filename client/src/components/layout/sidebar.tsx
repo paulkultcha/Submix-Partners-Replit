@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Music, BarChart3, Users, Percent, Ticket, DollarSign, FileText, Settings, Key, UserCheck } from "lucide-react";
+import { Music, BarChart3, Users, Percent, Ticket, DollarSign, FileText, Settings, Key, UserCheck, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/ui/brand-logo";
 
@@ -17,6 +17,7 @@ const analytics = [
 
 const settings = [
   { name: "User Management", href: "/users", icon: UserCheck },
+  { name: "Security & Compliance", href: "/security", icon: Shield },
   { name: "Configuration", href: "/settings", icon: Settings },
   { name: "API Keys", href: "/api-keys", icon: Key },
 ];
