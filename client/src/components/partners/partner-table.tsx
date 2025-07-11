@@ -47,7 +47,8 @@ export function PartnerTable() {
 
   const filteredPartners = partners?.filter(partner => {
     const matchesSearch = partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         partner.email.toLowerCase().includes(searchTerm.toLowerCase());
+                         partner.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (partner.companyName && partner.companyName.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === "all" || partner.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -176,6 +177,16 @@ export function PartnerTable() {
                           <div className="ml-4">
                             <div className="text-sm font-medium text-slate-900">{partner.name}</div>
                             <div className="text-sm text-slate-500">{partner.email}</div>
+                            {partner.companyName && (
+                              <div className="text-xs text-slate-400">{partner.companyName}</div>
+                            )}
+                            {partner.website && (
+                              <div className="text-xs text-blue-600 hover:text-blue-800">
+                                <a href={partner.website} target="_blank" rel="noopener noreferrer">
+                                  {partner.website}
+                                </a>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>

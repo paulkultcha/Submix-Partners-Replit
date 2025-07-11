@@ -28,6 +28,8 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    companyName: "",
+    website: "",
     commissionRate: "",
     commissionType: "percentage",
     payoutMethod: "paypal",
@@ -58,6 +60,8 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
       setFormData({
         name: "",
         email: "",
+        companyName: "",
+        website: "",
         commissionRate: "",
         commissionType: "percentage",
         payoutMethod: "paypal",
@@ -137,6 +141,35 @@ export function AddPartnerDialog({ open, onOpenChange }: AddPartnerDialogProps) 
             />
             {errors.email && (
               <p className="text-sm text-destructive">{errors.email}</p>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="companyName">Company Name</Label>
+            <Input
+              id="companyName"
+              value={formData.companyName || ""}
+              onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+              className={errors.companyName ? "border-destructive" : ""}
+              placeholder="Enter company name (optional)"
+            />
+            {errors.companyName && (
+              <p className="text-sm text-destructive">{errors.companyName}</p>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="website">Website</Label>
+            <Input
+              id="website"
+              type="url"
+              value={formData.website || ""}
+              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+              className={errors.website ? "border-destructive" : ""}
+              placeholder="https://example.com (optional)"
+            />
+            {errors.website && (
+              <p className="text-sm text-destructive">{errors.website}</p>
             )}
           </div>
           

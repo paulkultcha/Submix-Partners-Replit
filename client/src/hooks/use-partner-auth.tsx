@@ -21,6 +21,8 @@ type PartnerLoginData = {
 type PartnerRegisterData = {
   name: string;
   email: string;
+  companyName?: string;
+  website?: string;
   password: string;
 };
 

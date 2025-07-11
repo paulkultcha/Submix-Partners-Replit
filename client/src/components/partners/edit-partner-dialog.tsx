@@ -32,6 +32,8 @@ export function EditPartnerDialog({ open, onOpenChange, partner }: EditPartnerDi
     defaultValues: {
       name: "",
       email: "",
+      companyName: "",
+      website: "",
       commissionRate: 0,
       commissionType: "percentage",
       payoutMethod: "paypal",
@@ -44,6 +46,8 @@ export function EditPartnerDialog({ open, onOpenChange, partner }: EditPartnerDi
       form.reset({
         name: partner.name,
         email: partner.email,
+        companyName: partner.companyName || "",
+        website: partner.website || "",
         commissionRate: Number(partner.commissionRate),
         commissionType: partner.commissionType,
         payoutMethod: partner.payoutMethod,
@@ -127,6 +131,34 @@ export function EditPartnerDialog({ open, onOpenChange, partner }: EditPartnerDi
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="Enter email address" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="companyName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Company Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter company name (optional)" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="website"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website</FormLabel>
+                  <FormControl>
+                    <Input type="url" placeholder="https://example.com (optional)" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

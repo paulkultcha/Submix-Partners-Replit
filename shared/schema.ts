@@ -17,6 +17,8 @@ export const partners = pgTable("partners", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  companyName: text("company_name"),
+  website: text("website"),
   status: text("status").notNull().default("active"), // active, pending, inactive
   commissionRate: numeric("commission_rate", { precision: 5, scale: 2 }).notNull(), // percentage
   commissionType: text("commission_type").notNull().default("percentage"), // percentage, fixed

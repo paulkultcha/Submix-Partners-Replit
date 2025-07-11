@@ -21,6 +21,8 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
+  companyName: z.string().optional(),
+  website: z.string().url("Invalid URL format").optional().or(z.literal("")),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string().min(1, "Please confirm your password"),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -72,6 +74,8 @@ export default function PartnerAuth() {
     defaultValues: {
       name: "",
       email: "",
+      companyName: "",
+      website: "",
       password: "",
       confirmPassword: "",
     },
@@ -100,6 +104,8 @@ export default function PartnerAuth() {
     registerMutation.mutate({
       name: data.name,
       email: data.email,
+      companyName: data.companyName,
+      website: data.website,
       password: data.password,
     });
   };
@@ -377,6 +383,32 @@ export default function PartnerAuth() {
                           <FormLabel>Email</FormLabel>
                           <FormControl>
                             <Input type="email" placeholder="your@email.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="companyName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Your company name (optional)" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="website"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Website</FormLabel>
+                          <FormControl>
+                            <Input type="url" placeholder="https://yourwebsite.com (optional)" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

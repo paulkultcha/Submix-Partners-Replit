@@ -128,6 +128,7 @@ The application is designed for deployment on platforms like Replit, with proper
 ## Recent Changes
 
 ### January 2025
+- **Added company name and website fields** - Enhanced partner management system to include company name and website information in both admin and partner portals, including registration forms and partner table display
 - **Fixed partner authentication persistence** - Resolved issue where partner signups weren't working for returning users by implementing proper password hashing and session management
 - **Added forgot password functionality** - Implemented complete password reset flow with email-based token system for partner authentication
 - **Enhanced partner portal security** - Updated all partner API endpoints to use proper session-based authentication instead of mock data
