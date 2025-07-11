@@ -84,9 +84,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const id = parseInt(req.params.id);
+      console.log("Updating partner ID:", id, "with data:", req.body);
+      
+      // Validate the partner exists
+      const existingPartner = await storage.getPartner(id);
+      if (!existingPartner) {
+        return res.status(404).json({ error: "Partner not found" });
+      }
+      
       const partner = await storage.updatePartner(id, req.body);
+      console.log("Partner updated successfully:", partner);
       res.json(partner);
     } catch (error) {
+      console.error("Partner update error:", error);
       res.status(500).json({ error: "Failed to update partner" });
     }
   });

@@ -56,6 +56,8 @@ export function EditPartnerDialog({ open, onOpenChange, partner }: EditPartnerDi
     mutationFn: async (data: z.infer<typeof editPartnerSchema>) => {
       if (!partner) throw new Error("No partner selected");
       
+      console.log("Updating partner with data:", data);
+      
       return await apiRequest("PUT", `/api/partners/${partner.id}`, {
         ...data,
         commissionRate: data.commissionRate.toString(),
@@ -71,6 +73,7 @@ export function EditPartnerDialog({ open, onOpenChange, partner }: EditPartnerDi
       form.reset();
     },
     onError: (error) => {
+      console.error("Partner update error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to update partner",
@@ -80,6 +83,8 @@ export function EditPartnerDialog({ open, onOpenChange, partner }: EditPartnerDi
   });
 
   const onSubmit = (data: z.infer<typeof editPartnerSchema>) => {
+    console.log("Form submitted with data:", data);
+    console.log("Form errors:", form.formState.errors);
     updatePartnerMutation.mutate(data);
   };
 
