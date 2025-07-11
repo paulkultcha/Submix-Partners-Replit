@@ -799,9 +799,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
+      console.log("Creating fraud alert with data:", req.body);
       const alert = await storage.createFraudAlert(req.body);
       res.json(alert);
     } catch (error) {
+      console.error("Create fraud alert error:", error);
       res.status(500).json({ error: "Failed to create fraud alert" });
     }
   });
@@ -832,9 +834,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
+      console.log("Creating fraud rule with data:", req.body);
       const rule = await storage.createFraudRule(req.body);
       res.json(rule);
     } catch (error) {
+      console.error("Create fraud rule error:", error);
       res.status(500).json({ error: "Failed to create fraud rule" });
     }
   });

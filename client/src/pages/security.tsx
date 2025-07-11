@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -120,6 +120,10 @@ export default function SecurityPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/fraud/alerts"] });
       toast({ title: "Alert updated successfully" });
     },
+    onError: (error) => {
+      console.error("Update alert error:", error);
+      toast({ title: "Failed to update alert", variant: "destructive" });
+    },
   });
 
   const createAlertMutation = useMutation({
@@ -130,6 +134,10 @@ export default function SecurityPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/fraud/alerts"] });
       toast({ title: "Alert created successfully" });
       setNewAlertDialog(false);
+    },
+    onError: (error) => {
+      console.error("Create alert error:", error);
+      toast({ title: "Failed to create alert", variant: "destructive" });
     },
   });
 
@@ -142,6 +150,10 @@ export default function SecurityPage() {
       toast({ title: "Rule created successfully" });
       setNewRuleDialog(false);
     },
+    onError: (error) => {
+      console.error("Create rule error:", error);
+      toast({ title: "Failed to create rule", variant: "destructive" });
+    },
   });
 
   // Mutations for data requests
@@ -152,6 +164,10 @@ export default function SecurityPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/gdpr/data-requests"] });
       toast({ title: "Request updated successfully" });
+    },
+    onError: (error) => {
+      console.error("Update request error:", error);
+      toast({ title: "Failed to update request", variant: "destructive" });
     },
   });
 
@@ -263,15 +279,20 @@ export default function SecurityPage() {
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Create Fraud Alert</DialogTitle>
+                      <DialogDescription>
+                        Create a new fraud alert to flag suspicious activity in the system.
+                      </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={(e) => {
                       e.preventDefault();
                       const formData = new FormData(e.currentTarget);
+                      const partnerIdValue = formData.get("partnerId") as string;
                       createAlertMutation.mutate({
                         alertType: formData.get("alertType") as string,
                         severity: formData.get("severity") as string,
                         description: formData.get("description") as string,
-                        partnerId: formData.get("partnerId") ? parseInt(formData.get("partnerId") as string) : undefined,
+                        partnerId: partnerIdValue && partnerIdValue.trim() !== "" ? parseInt(partnerIdValue) : undefined,
+                        status: "open",
                       });
                     }}>
                       <div className="space-y-4">
@@ -313,10 +334,12 @@ export default function SecurityPage() {
                         </div>
                       </div>
                       <div className="flex justify-end gap-2 mt-6">
-                        <Button type="button" variant="outline" onClick={() => setNewAlertDialog(false)}>
+                        <Button type="button" variant="outline" onClick={() => setNewAlertDialog(false)} disabled={createAlertMutation.isPending}>
                           Cancel
                         </Button>
-                        <Button type="submit">Create Alert</Button>
+                        <Button type="submit" disabled={createAlertMutation.isPending}>
+                          {createAlertMutation.isPending ? "Creating..." : "Create Alert"}
+                        </Button>
                       </div>
                     </form>
                   </DialogContent>
@@ -344,17 +367,17 @@ export default function SecurityPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleAlertStatusChange(alert.id, "investigating")}
-                            disabled={alert.status === "investigating"}
+                            disabled={alert.status === "investigating" || updateAlertMutation.isPending}
                           >
-                            Investigate
+                            {updateAlertMutation.isPending ? "..." : "Investigate"}
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleAlertStatusChange(alert.id, "resolved")}
-                            disabled={alert.status === "resolved"}
+                            disabled={alert.status === "resolved" || updateAlertMutation.isPending}
                           >
-                            Resolve
+                            {updateAlertMutation.isPending ? "..." : "Resolve"}
                           </Button>
                         </div>
                       </div>
@@ -377,15 +400,28 @@ export default function SecurityPage() {
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Create Fraud Rule</DialogTitle>
+                      <DialogDescription>
+                        Create a new fraud detection rule to automatically monitor for suspicious patterns.
+                      </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={(e) => {
                       e.preventDefault();
                       const formData = new FormData(e.currentTarget);
+                      const conditionsValue = formData.get("conditions") as string;
+                      
+                      // Validate JSON format
+                      try {
+                        JSON.parse(conditionsValue);
+                      } catch (error) {
+                        toast({ title: "Invalid JSON format in conditions", variant: "destructive" });
+                        return;
+                      }
+                      
                       createRuleMutation.mutate({
                         name: formData.get("name") as string,
                         description: formData.get("description") as string,
                         ruleType: formData.get("ruleType") as string,
-                        conditions: formData.get("conditions") as string,
+                        conditions: conditionsValue,
                         threshold: parseFloat(formData.get("threshold") as string),
                         timeWindow: parseInt(formData.get("timeWindow") as string),
                         isActive: true,
@@ -428,10 +464,12 @@ export default function SecurityPage() {
                         </div>
                       </div>
                       <div className="flex justify-end gap-2 mt-6">
-                        <Button type="button" variant="outline" onClick={() => setNewRuleDialog(false)}>
+                        <Button type="button" variant="outline" onClick={() => setNewRuleDialog(false)} disabled={createRuleMutation.isPending}>
                           Cancel
                         </Button>
-                        <Button type="submit">Create Rule</Button>
+                        <Button type="submit" disabled={createRuleMutation.isPending}>
+                          {createRuleMutation.isPending ? "Creating..." : "Create Rule"}
+                        </Button>
                       </div>
                     </form>
                   </DialogContent>
@@ -532,17 +570,17 @@ export default function SecurityPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleRequestStatusChange(request.id, "processing")}
-                          disabled={request.status === "processing" || request.status === "completed"}
+                          disabled={request.status === "processing" || request.status === "completed" || updateRequestMutation.isPending}
                         >
-                          Process
+                          {updateRequestMutation.isPending ? "..." : "Process"}
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleRequestStatusChange(request.id, "completed")}
-                          disabled={request.status === "completed"}
+                          disabled={request.status === "completed" || updateRequestMutation.isPending}
                         >
-                          Complete
+                          {updateRequestMutation.isPending ? "..." : "Complete"}
                         </Button>
                       </div>
                     </div>
