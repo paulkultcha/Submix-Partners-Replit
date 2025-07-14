@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -209,13 +211,13 @@ export default function SecurityPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center gap-2 mb-6">
-        <Shield className="h-6 w-6 text-blue-600" />
-        <h1 className="text-2xl font-bold">Security & Compliance</h1>
-      </div>
-
-      <Tabs defaultValue="fraud" className="w-full">
+    <div className="min-h-screen flex bg-slate-50">
+      <Sidebar />
+      <div className="flex-1 ml-64">
+        <Header title="Security & Compliance" subtitle="Manage fraud detection, GDPR compliance, and audit trails" />
+        
+        <div className="p-6 space-y-6">
+          <Tabs defaultValue="fraud" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="fraud" className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
@@ -679,7 +681,9 @@ export default function SecurityPage() {
             </Card>
           </div>
         </TabsContent>
-      </Tabs>
+          </Tabs>
+        </div>
+      </div>
     </div>
   );
 }
