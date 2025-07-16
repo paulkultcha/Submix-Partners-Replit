@@ -25,6 +25,10 @@ export default function PartnerDashboard() {
   });
 
   const copyReferralCode = async () => {
+    console.log('Copy referral code clicked');
+    console.log('Partner data:', partnerData);
+    console.log('Referral code:', partnerData?.referralCode);
+    
     if (!partnerData?.referralCode) {
       toast({
         title: "Error",
@@ -34,18 +38,23 @@ export default function PartnerDashboard() {
       return;
     }
     
+    const textToCopy = partnerData.referralCode;
+    console.log('Text to copy:', textToCopy);
+    
     try {
       // Try modern clipboard API first
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(partnerData.referralCode);
+        console.log('Using modern clipboard API');
+        await navigator.clipboard.writeText(textToCopy);
         toast({
           title: "Success",
           description: "Referral code copied to clipboard",
         });
       } else {
+        console.log('Using fallback clipboard method');
         // Fallback for browsers that don't support clipboard API
         const textArea = document.createElement('textarea');
-        textArea.value = partnerData.referralCode;
+        textArea.value = textToCopy;
         textArea.style.position = 'fixed';
         textArea.style.left = '-999999px';
         textArea.style.top = '-999999px';
@@ -54,6 +63,8 @@ export default function PartnerDashboard() {
         textArea.select();
         const successful = document.execCommand('copy');
         document.body.removeChild(textArea);
+        
+        console.log('Fallback copy successful:', successful);
         
         if (successful) {
           toast({
@@ -79,6 +90,10 @@ export default function PartnerDashboard() {
   };
 
   const copyReferralLink = async () => {
+    console.log('Copy referral link clicked');
+    console.log('Partner data:', partnerData);
+    console.log('Referral code:', partnerData?.referralCode);
+    
     if (!partnerData?.referralCode) {
       toast({
         title: "Error",
@@ -89,16 +104,19 @@ export default function PartnerDashboard() {
     }
     
     const referralLink = `${window.location.origin}/refer/${partnerData.referralCode}`;
+    console.log('Referral link:', referralLink);
     
     try {
       // Try modern clipboard API first
       if (navigator.clipboard && window.isSecureContext) {
+        console.log('Using modern clipboard API for link');
         await navigator.clipboard.writeText(referralLink);
         toast({
           title: "Success",
           description: "Referral link copied to clipboard",
         });
       } else {
+        console.log('Using fallback clipboard method for link');
         // Fallback for browsers that don't support clipboard API
         const textArea = document.createElement('textarea');
         textArea.value = referralLink;
@@ -110,6 +128,8 @@ export default function PartnerDashboard() {
         textArea.select();
         const successful = document.execCommand('copy');
         document.body.removeChild(textArea);
+        
+        console.log('Fallback copy successful for link:', successful);
         
         if (successful) {
           toast({
