@@ -581,6 +581,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update partner profile
+  app.put("/api/partner/me", async (req, res) => {
+    try {
+      if (!req.session.partnerId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const updatedPartner = await storage.updatePartner(req.session.partnerId, req.body);
+      
+      // Remove password from response
+      const { password: _, ...partnerWithoutPassword } = updatedPartner;
+      res.json(partnerWithoutPassword);
+    } catch (error) {
+      console.error("Update partner profile error:", error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
+  // Change partner password
+  app.post("/api/partner/change-password", async (req, res) => {
+    try {
+      if (!req.session.partnerId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const { currentPassword, newPassword } = req.body;
+      
+      // Get current partner
+      const partner = await storage.getPartner(req.session.partnerId);
+      if (!partner) {
+        return res.status(404).json({ error: "Partner not found" });
+      }
+      
+      // Verify current password
+      const isValid = await comparePasswords(currentPassword, partner.password);
+      if (!isValid) {
+        return res.status(400).json({ error: "Current password is incorrect" });
+      }
+      
+      // Hash new password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update password
+      await storage.updatePartner(req.session.partnerId, { password: hashedPassword });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Change password error:", error);
+      res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+
   // User management routes
   app.get("/api/users", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
