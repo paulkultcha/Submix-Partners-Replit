@@ -525,19 +525,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/partner/me", async (req, res) => {
     try {
+      console.log("Partner /me endpoint called");
+      console.log("Session ID:", req.sessionID);
+      console.log("Session partnerId:", req.session.partnerId);
+      console.log("Session data:", req.session);
+      
       if (!req.session.partnerId) {
+        console.log("No partnerId in session, returning 401");
         return res.status(401).json({ error: "Unauthorized" });
       }
       
       const partner = await storage.getPartner(req.session.partnerId);
       if (!partner) {
+        console.log("Partner not found in database");
         return res.status(404).json({ error: "Partner not found" });
       }
+      
+      console.log("Partner found:", partner.name, partner.email);
       
       // Remove password from response
       const { password: _, ...partnerWithoutPassword } = partner;
       res.json(partnerWithoutPassword);
     } catch (error) {
+      console.error("Partner /me error:", error);
       res.status(500).json({ error: "Failed to fetch partner data" });
     }
   });
