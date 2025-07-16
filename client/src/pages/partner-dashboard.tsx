@@ -25,11 +25,10 @@ export default function PartnerDashboard() {
   });
 
   const copyReferralCode = async () => {
-    console.log('Copy referral code clicked');
-    console.log('Partner data:', partnerData);
-    console.log('Referral code:', partnerData?.referralCode);
+    console.log('Copy referral code function called');
     
     if (!partnerData?.referralCode) {
+      console.log('No referral code available');
       toast({
         title: "Error",
         description: "Referral code not available",
@@ -39,47 +38,38 @@ export default function PartnerDashboard() {
     }
     
     const textToCopy = partnerData.referralCode;
-    console.log('Text to copy:', textToCopy);
+    console.log('Copying text:', textToCopy);
+    
+    // Simple fallback method that should work in all browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = textToCopy;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
     
     try {
-      // Try modern clipboard API first
-      if (navigator.clipboard && window.isSecureContext) {
-        console.log('Using modern clipboard API');
-        await navigator.clipboard.writeText(textToCopy);
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      console.log('Copy successful:', successful);
+      
+      if (successful) {
         toast({
           title: "Success",
           description: "Referral code copied to clipboard",
         });
       } else {
-        console.log('Using fallback clipboard method');
-        // Fallback for browsers that don't support clipboard API
-        const textArea = document.createElement('textarea');
-        textArea.value = textToCopy;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        const successful = document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        console.log('Fallback copy successful:', successful);
-        
-        if (successful) {
-          toast({
-            title: "Success",
-            description: "Referral code copied to clipboard",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: "Failed to copy referral code",
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Error",
+          description: "Failed to copy referral code",
+          variant: "destructive",
+        });
       }
     } catch (error) {
+      document.body.removeChild(textArea);
       console.error('Copy failed:', error);
       toast({
         title: "Error",
@@ -90,11 +80,10 @@ export default function PartnerDashboard() {
   };
 
   const copyReferralLink = async () => {
-    console.log('Copy referral link clicked');
-    console.log('Partner data:', partnerData);
-    console.log('Referral code:', partnerData?.referralCode);
+    console.log('Copy referral link function called');
     
     if (!partnerData?.referralCode) {
+      console.log('No referral code available');
       toast({
         title: "Error",
         description: "Referral code not available",
@@ -104,47 +93,38 @@ export default function PartnerDashboard() {
     }
     
     const referralLink = `${window.location.origin}/refer/${partnerData.referralCode}`;
-    console.log('Referral link:', referralLink);
+    console.log('Copying link:', referralLink);
+    
+    // Simple fallback method that should work in all browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = referralLink;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
     
     try {
-      // Try modern clipboard API first
-      if (navigator.clipboard && window.isSecureContext) {
-        console.log('Using modern clipboard API for link');
-        await navigator.clipboard.writeText(referralLink);
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      console.log('Copy successful:', successful);
+      
+      if (successful) {
         toast({
           title: "Success",
           description: "Referral link copied to clipboard",
         });
       } else {
-        console.log('Using fallback clipboard method for link');
-        // Fallback for browsers that don't support clipboard API
-        const textArea = document.createElement('textarea');
-        textArea.value = referralLink;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        const successful = document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        console.log('Fallback copy successful for link:', successful);
-        
-        if (successful) {
-          toast({
-            title: "Success",
-            description: "Referral link copied to clipboard",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: "Failed to copy referral link",
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Error",
+          description: "Failed to copy referral link",
+          variant: "destructive",
+        });
       }
     } catch (error) {
+      document.body.removeChild(textArea);
       console.error('Copy failed:', error);
       toast({
         title: "Error",
@@ -264,8 +244,13 @@ export default function PartnerDashboard() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={copyReferralCode}
-                    disabled={isPartnerLoading || !partnerData?.referralCode}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log('Button clicked - Copy Code');
+                      copyReferralCode();
+                    }}
+                    disabled={isPartnerLoading}
+                    type="button"
                   >
                     <Copy className="mr-2 h-4 w-4" />
                     Copy Code
@@ -273,8 +258,13 @@ export default function PartnerDashboard() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={copyReferralLink}
-                    disabled={isPartnerLoading || !partnerData?.referralCode}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log('Button clicked - Copy Link');
+                      copyReferralLink();
+                    }}
+                    disabled={isPartnerLoading}
+                    type="button"
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Copy Link
