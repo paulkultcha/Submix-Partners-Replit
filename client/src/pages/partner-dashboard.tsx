@@ -17,6 +17,8 @@ export default function PartnerDashboard() {
   const { data: partnerData, isLoading: isPartnerLoading } = useQuery<Partner>({
     queryKey: ["/api/partner/me"],
     enabled: !!partner,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data: commissions } = useQuery<Commission[]>({
@@ -27,9 +29,15 @@ export default function PartnerDashboard() {
   const copyReferralCode = async () => {
     console.log('Copy referral code function called');
     console.log('Partner data:', partnerData);
+    console.log('Partner object:', partner);
     
-    // Check both camelCase and snake_case versions
-    const referralCode = partnerData?.referralCode || (partnerData as any)?.referral_code;
+    // Check partner data first, then fall back to partner object
+    const referralCode = partnerData?.referralCode || 
+                        (partnerData as any)?.referral_code || 
+                        partner?.referralCode ||
+                        (partner as any)?.referral_code;
+    
+    console.log('Referral code found:', referralCode);
     
     if (!referralCode) {
       console.log('No referral code available');
@@ -86,9 +94,15 @@ export default function PartnerDashboard() {
   const copyReferralLink = async () => {
     console.log('Copy referral link function called');
     console.log('Partner data:', partnerData);
+    console.log('Partner object:', partner);
     
-    // Check both camelCase and snake_case versions
-    const referralCode = partnerData?.referralCode || (partnerData as any)?.referral_code;
+    // Check partner data first, then fall back to partner object
+    const referralCode = partnerData?.referralCode || 
+                        (partnerData as any)?.referral_code || 
+                        partner?.referralCode ||
+                        (partner as any)?.referral_code;
+    
+    console.log('Referral code found:', referralCode);
     
     if (!referralCode) {
       console.log('No referral code available');
@@ -245,7 +259,11 @@ export default function PartnerDashboard() {
                     <p className="text-sm text-slate-600">Use this code in your marketing materials</p>
                   </div>
                   <Badge variant="outline" className="text-lg px-3 py-1">
-                    {partnerData?.referralCode || (partnerData as any)?.referral_code}
+                    {partnerData?.referralCode || 
+                     (partnerData as any)?.referral_code || 
+                     partner?.referralCode ||
+                     (partner as any)?.referral_code ||
+                     "Loading..."}
                   </Badge>
                 </div>
                 <div className="flex space-x-2">

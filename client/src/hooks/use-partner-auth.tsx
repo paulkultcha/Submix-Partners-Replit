@@ -32,9 +32,11 @@ export function PartnerAuthProvider({ children }: { children: ReactNode }) {
   const [, navigate] = useLocation();
   const [partner, setPartner] = useState<Partner | null>(null);
 
-  const { data, isLoading, error } = useQuery<Partner>({
+  const { data, isLoading, error, refetch } = useQuery<Partner>({
     queryKey: ["/api/partner/me"],
     retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
