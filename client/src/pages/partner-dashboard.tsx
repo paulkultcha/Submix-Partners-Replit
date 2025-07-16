@@ -35,23 +35,45 @@ export default function PartnerDashboard() {
     }
     
     try {
-      await navigator.clipboard.writeText(partnerData.referralCode);
-      toast({
-        title: "Success",
-        description: "Referral code copied to clipboard",
-      });
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(partnerData.referralCode);
+        toast({
+          title: "Success",
+          description: "Referral code copied to clipboard",
+        });
+      } else {
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = partnerData.referralCode;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        if (successful) {
+          toast({
+            title: "Success",
+            description: "Referral code copied to clipboard",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to copy referral code",
+            variant: "destructive",
+          });
+        }
+      }
     } catch (error) {
-      // Fallback for browsers that don't support clipboard API
-      const textArea = document.createElement('textarea');
-      textArea.value = partnerData.referralCode;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
+      console.error('Copy failed:', error);
       toast({
-        title: "Success",
-        description: "Referral code copied to clipboard",
+        title: "Error",
+        description: "Failed to copy referral code",
+        variant: "destructive",
       });
     }
   };
@@ -69,23 +91,45 @@ export default function PartnerDashboard() {
     const referralLink = `${window.location.origin}/refer/${partnerData.referralCode}`;
     
     try {
-      await navigator.clipboard.writeText(referralLink);
-      toast({
-        title: "Success",
-        description: "Referral link copied to clipboard",
-      });
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(referralLink);
+        toast({
+          title: "Success",
+          description: "Referral link copied to clipboard",
+        });
+      } else {
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = referralLink;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        if (successful) {
+          toast({
+            title: "Success",
+            description: "Referral link copied to clipboard",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to copy referral link",
+            variant: "destructive",
+          });
+        }
+      }
     } catch (error) {
-      // Fallback for browsers that don't support clipboard API
-      const textArea = document.createElement('textarea');
-      textArea.value = referralLink;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
+      console.error('Copy failed:', error);
       toast({
-        title: "Success",
-        description: "Referral link copied to clipboard",
+        title: "Error",
+        description: "Failed to copy referral link",
+        variant: "destructive",
       });
     }
   };
