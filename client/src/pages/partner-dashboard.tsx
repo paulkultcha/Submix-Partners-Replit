@@ -26,8 +26,12 @@ export default function PartnerDashboard() {
 
   const copyReferralCode = async () => {
     console.log('Copy referral code function called');
+    console.log('Partner data:', partnerData);
     
-    if (!partnerData?.referralCode) {
+    // Check both camelCase and snake_case versions
+    const referralCode = partnerData?.referralCode || (partnerData as any)?.referral_code;
+    
+    if (!referralCode) {
       console.log('No referral code available');
       toast({
         title: "Error",
@@ -37,7 +41,7 @@ export default function PartnerDashboard() {
       return;
     }
     
-    const textToCopy = partnerData.referralCode;
+    const textToCopy = referralCode;
     console.log('Copying text:', textToCopy);
     
     // Simple fallback method that should work in all browsers
@@ -81,8 +85,12 @@ export default function PartnerDashboard() {
 
   const copyReferralLink = async () => {
     console.log('Copy referral link function called');
+    console.log('Partner data:', partnerData);
     
-    if (!partnerData?.referralCode) {
+    // Check both camelCase and snake_case versions
+    const referralCode = partnerData?.referralCode || (partnerData as any)?.referral_code;
+    
+    if (!referralCode) {
       console.log('No referral code available');
       toast({
         title: "Error",
@@ -92,7 +100,7 @@ export default function PartnerDashboard() {
       return;
     }
     
-    const referralLink = `${window.location.origin}/refer/${partnerData.referralCode}`;
+    const referralLink = `${window.location.origin}/refer/${referralCode}`;
     console.log('Copying link:', referralLink);
     
     // Simple fallback method that should work in all browsers
@@ -237,7 +245,7 @@ export default function PartnerDashboard() {
                     <p className="text-sm text-slate-600">Use this code in your marketing materials</p>
                   </div>
                   <Badge variant="outline" className="text-lg px-3 py-1">
-                    {partnerData?.referralCode}
+                    {partnerData?.referralCode || (partnerData as any)?.referral_code}
                   </Badge>
                 </div>
                 <div className="flex space-x-2">
