@@ -85,4 +85,4 @@ Built for **Submix.io** - Advanced affiliate program management platform.
 
 ## 📄 License
 
-MIT License - See LICENSE file for details.
+MIT License - See LICENSE file for details.# Submix-Partners-Replit
